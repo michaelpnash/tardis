@@ -1,7 +1,13 @@
 package application
 
 import com.google.inject.{Inject, Provides, AbstractModule, Singleton}
+import akka.actor._
 
 class Module extends AbstractModule {
-  def configure() {}
+
+  @Provides @Singleton def system: ActorSystem = ActorSystem("tardis")
+
+  def configure() {
+
+  }
 }
