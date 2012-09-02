@@ -17,6 +17,5 @@ class Module extends AbstractModule {
   }
 
   def configure() {
-
   }
 }

@@ -3,7 +3,6 @@ import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._
 
-
 object Projects extends Build {
 
   val globalSettings = Defaults.defaultSettings ++ Seq(

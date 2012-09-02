@@ -3,13 +3,15 @@ package domain
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoConnection
 import org.joda.time._
+import com.mongodb.DB
 import com.mongodb.casbah.commons.conversions.scala._
+import com.google.inject.{Singleton, Inject}
 
-class EventContainerDataStore {
+@Singleton
+class EventContainerDataStore @Inject() (db: DB) {
+
+  val collection = db.getCollection("events")
   RegisterJodaTimeConversionHelpers()
-
-  val mongoConn = MongoConnection("localhost")
-  val collection = mongoConn("tardis")("events")
 
   protected def toDbObject(container: EventContainer) = MongoDBObject("timestamp" -> container.timestamp, 
     "event" -> container.event, "senderIdentifier" -> container.senderIdentifier.name, "eventIdentifier" -> container.eventIdentifier.ids)
