@@ -29,7 +29,8 @@ object Projects extends Build {
         "com.typesafe.akka" % "akka-slf4j" % akkaVersion,
         "com.typesafe.akka" % "akka-remote" % akkaVersion,
         "joda-time" % "joda-time" % "2.1",
-         "org.joda" % "joda-convert" % "1.2",
+        "org.joda" % "joda-convert" % "1.2",
+        "org.mongodb" % "casbah-commons_2.9.1" % "3.0.0-M2",    
         "org.specs2" %% "specs2" % "1.12.1" % "test")
     ))
 }
