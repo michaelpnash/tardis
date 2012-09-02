@@ -15,12 +15,19 @@ object Projects extends Build {
 
  /** Application **/
 
+  val akkaVersion = "2.0.1"
   val root = Project(
     "tardis",
     file("."),
     settings = globalSettings ++ assemblySettings ++ Seq(
       test in assembly := {},
       resolvers ++= Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/"),
-      libraryDependencies ++= Seq("com.typesafe.akka" % "akka-remote" % "2.0.1")
+      libraryDependencies ++= Seq("com.google.inject" % "guice" % "3.0",
+        "com.typesafe.akka"  % "akka-durable-mailboxes" % akkaVersion,
+        "com.typesafe.akka"  % "akka-file-mailbox" % akkaVersion,
+        "com.typesafe.akka"  % "akka-actor" % akkaVersion,
+        "com.typesafe.akka" % "akka-slf4j" % akkaVersion,
+        "com.typesafe.akka" % "akka-remote" % akkaVersion,
+        "org.specs2" %% "specs2" % "1.12.1" % "test")
     ))
 }
