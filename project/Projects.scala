@@ -34,6 +34,7 @@ object Projects extends Build {
         "org.mongodb" % "casbah-core_2.9.1" % "3.0.0-M2",  
         "org.mongodb" % "casbah-query_2.9.1" % "3.0.0-M2",
         "org.mongodb" % "casbah-util_2.9.1" % "3.0.0-M2", 
+        "org.mockito" % "mockito-core" % "1.9.0",
         "org.scalatest" %% "scalatest" % "2.0.M3" % "test")
     ))
 }
