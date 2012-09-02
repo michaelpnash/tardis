@@ -28,6 +28,8 @@ object Projects extends Build {
         "com.typesafe.akka"  % "akka-actor" % akkaVersion,
         "com.typesafe.akka" % "akka-slf4j" % akkaVersion,
         "com.typesafe.akka" % "akka-remote" % akkaVersion,
+        "joda-time" % "joda-time" % "2.1",
+         "org.joda" % "joda-convert" % "1.2",
         "org.specs2" %% "specs2" % "1.12.1" % "test")
     ))
 }

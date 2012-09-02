@@ -15,6 +15,6 @@ class ModuleSpec extends Specification {
 }
 
 trait injectors extends After {
-    lazy val injector = Guice.createInjector(Stage.PRODUCTION, new Module)
-    def after = injector.getInstance(classOf[ActorSystem]).shutdown()
-  }
+  lazy val injector = Guice.createInjector(Stage.PRODUCTION, new Module)
+  def after = injector.getInstance(classOf[ActorSystem]).shutdown()
+}
