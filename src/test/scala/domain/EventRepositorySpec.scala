@@ -1,8 +1,8 @@
 package domain
 
-import org.scalatest.FunSpec
+import application.InjectorFunSpec
 
-class EventRepositoryTest extends FunSpec {
+class EventRepositorySpec extends InjectorFunSpec {
   describe("The event repository") {
     it ("should record an event container") (pending)
   }

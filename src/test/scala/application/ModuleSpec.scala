@@ -4,7 +4,7 @@ import org.scalatest._
 import application.InjectorFunSpec
 import akka.actor._
 
-class ModuleTest extends InjectorFunSpec {
+class ModuleSpec extends InjectorFunSpec {
   
   describe("The module")  {
     it ("should produce an actor system") {
