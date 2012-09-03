@@ -1,8 +1,10 @@
 package domain
 
 import akka.actor._
+import com.google.inject.{Singleton, Inject}
 
-class EventRouter extends Actor with ActorLogging {
+@Singleton
+class EventRouter @Inject()(eventRepository: EventRepository) extends Actor with ActorLogging {
   def receive = {
     case _ => throw new RuntimeException("Not implemented")
   }

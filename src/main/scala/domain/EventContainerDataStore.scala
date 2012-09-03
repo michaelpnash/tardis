@@ -9,9 +9,9 @@ import com.google.inject.{Singleton, Inject}
 
 @Singleton
 class EventContainerDataStore @Inject() (db: DB) {
+  RegisterJodaTimeConversionHelpers()
 
   val collection = db.getCollection("events")
-  RegisterJodaTimeConversionHelpers()
 
   protected def toDbObject(container: EventContainer) = MongoDBObject("timestamp" -> container.timestamp, 
     "event" -> container.event, "senderIdentifier" -> container.senderIdentifier.name, "eventIdentifier" -> container.eventIdentifier.ids)
