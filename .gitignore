@@ -3,3 +3,7 @@
 /project/target/
 /.ensime
 /.ensime_lucene/
+/logs/
+.DS_Store
+*/.DS_Store
+/src/test/scala/.DS_Store

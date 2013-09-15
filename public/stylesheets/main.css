@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+}
+.ranking-table
+{
+  padding: 0;
+  margin: 0;
+  border-collapse: collapse;
+  border: 1px solid #333;
+  font-family: "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+  font-size: 0.9em;
+  color: #000;
+  background: #bcd0e4 url("widget-table-bg.jpg") top left repeat-x;
+}
+
+.ranking-table caption
+{
+  caption-side: bottom;
+  font-size: 0.9em;
+  font-style: italic;
+  text-align: right;
+  padding: 0.5em 0;
+}
+
+.ranking-table th, .pretty-table td
+{
+  border: 1px dotted #666;
+  padding: 0.5em;
+  text-align: left;
+  color: #632a39;
+}
+.radio-group *
+{
+display: inline;
+}
+.radio-group * .input label:after {
+    content: '';
+}
+.radio-group * .input label {
+    font-weight: normal;
+}
+table .inputfield * .help-block {
+    visibility: hidden;
+}
+.radio-group * .help-block
+{
+   visibility: hidden;
+}
+.inputfield * {
+    display: inline;
+}
+
+table * td {
+    vertical-align: top;
+}
+table * label {
+    display: block;
+    float: left;
+    visibility: hidden;
+    width: 0px;
+}
+
+table * .radio-group * .input label {
+    display: inline;
+}
+label {
+    font-weight: bold;
+}
+label:after {
+    content: ':';
+}
+div .section {
+    min-height: 1px;
+    clear:both; width:100%;
+    border-bottom:1px solid #d1d1d1;
+    margin-top:30px;
+    margin-bottom:30px;
+}
