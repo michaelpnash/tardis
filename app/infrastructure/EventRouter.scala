@@ -8,6 +8,9 @@ object EventRouterActor {
 
 class EventRouterActor(name: String) extends Actor with ActorLogging {
   def receive = {
-    case _ => println("Got a message")
+    case x: Any => {
+      println(s"Got a message: $x")
+      sender ! "ack"
+    }
   }
 }

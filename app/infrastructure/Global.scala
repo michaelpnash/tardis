@@ -16,11 +16,12 @@ object Global extends GlobalSettings {
   }
 }
 
-class TardisModule(system: ActorSystem) {
+class TardisModule(val system: ActorSystem) {
   import com.softwaremill.macwire.MacwireMacros._
 
   lazy val application = wire[Application]
   val eventRouterActor = system.actorOf(EventRouterActor.props("test"))
+  println("Event router actor:" + eventRouterActor.path.toString)
 
   def getController[A](classRef: Class[A]): A = classRef match {
     case x if x.isAssignableFrom(classOf[Application]) => application.asInstanceOf[A]
