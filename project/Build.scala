@@ -24,12 +24,10 @@ object ApplicationBuild extends Build {
     sbt.Keys.fork in Test := false
   ) configs(MultiJvm)
 
-  val client = play.Project("client", appVersion, Dependencies.base,
-    path = file("client")
-  ).settings(
-    sbt.Keys.fork in Test := false
-  ) 
-
+  val client = Project(id = "client", base = file("client"),
+    settings = buildSettings ++
+      Seq(libraryDependencies ++= Dependencies.client))
+  
   lazy val integration = Project(
     id = "integration",
     base = file("integration"),
@@ -67,5 +65,7 @@ object ApplicationBuild extends Build {
       "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
       "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion % "test"
     )
+
+    val client = Seq("org.scalatest" %% "scalatest" % "2.0.M5b" % "test")
   }
 }
