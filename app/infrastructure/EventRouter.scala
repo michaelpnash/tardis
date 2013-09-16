@@ -2,8 +2,12 @@ package infrastructure.api
 
 import akka.actor._
 
-class EventRouterActor extends Actor with ActorLogging {
+object EventRouterActor {
+  def props(name: String): Props = Props(classOf[EventRouterActor], name)
+}
+
+class EventRouterActor(name: String) extends Actor with ActorLogging {
   def receive = {
-    case _ => ???
+    case _ => println("Got a message")
   }
 }
