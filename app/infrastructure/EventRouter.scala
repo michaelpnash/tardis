@@ -1,6 +1,8 @@
 package infrastructure.api 
 
+import com.jglobal.tardis._
 import akka.actor._
+import java.util.UUID
 
 object EventRouterActor {
   def props(name: String): Props = Props(classOf[EventRouterActor], name)
@@ -8,9 +10,9 @@ object EventRouterActor {
 
 class EventRouterActor(name: String) extends Actor with ActorLogging {
   def receive = {
-    case x: Any => {
-      println(s"Got a message: $x")
-      sender ! "ack"
+    case container: EventContainer => {
+      println(s"Got a message: $container")
+      sender ! Ack(container.id)
     }
   }
 }

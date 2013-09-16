@@ -20,20 +20,20 @@ object ApplicationBuild extends Build {
     resolvers += "Akka Snapshots" at "http://repo.akka.io/snapshots/"
   )
 
-  val main = play.Project(appName, appVersion, Dependencies.base).settings(
-    sbt.Keys.fork in Test := false
-  ) configs(MultiJvm)
-
   val client = Project(id = "client", base = file("client"),
     settings = buildSettings ++
       Seq(libraryDependencies ++= Dependencies.client))
   
+  val main = play.Project(appName, appVersion, Dependencies.base).settings(
+    sbt.Keys.fork in Test := false
+  ).dependsOn(client)
+
   lazy val integration = Project(
     id = "integration",
     base = file("integration"),
     settings = buildSettings ++
       Seq(libraryDependencies ++= Dependencies.base)
-  ).dependsOn(main, client) configs(MultiJvm)
+  ).dependsOn(main) configs(MultiJvm)
   
   lazy val multiJvmSettings = SbtMultiJvm.multiJvmSettings ++ Seq(
     // make sure that MultiJvm test are compiled by the default test compilation

@@ -1,19 +1,22 @@
 package client
 import akka.actor.ActorSystem
 
+import com.jglobal.tardis._
 import org.scalatest.FreeSpec
 import org.scalatest.BeforeAndAfterAll
 import akka.testkit.TestKit
 import akka.testkit.ImplicitSender
+import java.util.UUID
 
 class SpecMultiJvmNode1(system: ActorSystem) extends TestKit(system) with FreeSpec with ImplicitSender {
   def this() = this(ActorSystem("client"))
   
   "a thing" - {
-    "should send an event and receive an ack" in {
+    "should send an event and receive the appropriate ack" in {
       val bus = system.actorSelection("akka.tcp://tardis@127.0.0.1:9999/user/eventrouter")
-      bus ! "test"
-      expectMsg("ack")
+      val id = UUID.randomUUID
+      bus ! EventContainer(id, "type", "payload")
+      expectMsg(Ack(id))
     }
   }
 }

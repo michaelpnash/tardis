@@ -1,4 +1,4 @@
-package infrastructure
+package com.jglobal.tardis
 
 import org.scalatest.FreeSpec
 
