@@ -30,10 +30,13 @@ object ApplicationBuild extends Build {
     sbt.Keys.fork in Test := false
   ) 
 
-  val integration = play.Project("integration", appVersion, Dependencies.base,
-    path = file("integration")
-  ).dependsOn(main, client).settings() configs(MultiJvm)
-
+  lazy val integration = Project(
+    id = "integration",
+    base = file("integration"),
+    settings = buildSettings ++
+      Seq(libraryDependencies ++= Dependencies.base)
+  ).dependsOn(main, client) configs(MultiJvm)
+  
   lazy val multiJvmSettings = SbtMultiJvm.multiJvmSettings ++ Seq(
     // make sure that MultiJvm test are compiled by the default test compilation
     compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
