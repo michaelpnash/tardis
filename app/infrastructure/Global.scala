@@ -20,10 +20,9 @@ class TardisModule(val system: ActorSystem) {
   import com.softwaremill.macwire.MacwireMacros._
 
   lazy val application = wire[Application]
-  println("System:" + system)
+  
   val eventRouterActor = system.actorOf(EventRouterActor.props("test"), name = "eventrouter")
-  println("Event router actor:" + eventRouterActor.path.toStringWithAddress(eventRouterActor.path.address))
-
+  
   def getController[A](classRef: Class[A]): A = classRef match {
     case x if x.isAssignableFrom(classOf[Application]) => application.asInstanceOf[A]
     case x => throw new IllegalArgumentException("No such controller of class ${classRef.getName} is known")
