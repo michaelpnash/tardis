@@ -24,6 +24,5 @@ class ClientRepository {
   def recordPublished(clientId: String, publishedType: String): Client =
     store(
       findOrCreate(clientId).withPublishes(publishedType)
-    )
-  
+    )  
 }
