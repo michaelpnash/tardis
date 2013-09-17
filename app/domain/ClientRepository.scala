@@ -2,7 +2,6 @@ package domain
 
 import akka.actor._
 import com.jglobal.tardis._
-
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
 
@@ -28,13 +27,3 @@ class ClientRepository {
 
   def subscribersOf(eventType: EventType) = clients.values.filter(_.subscribes.contains(eventType))
 }
-
-
-
-
-
-
-
-
-
-

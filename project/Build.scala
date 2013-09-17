@@ -66,6 +66,9 @@ object ApplicationBuild extends Build {
       "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion % "test"
     )
 
-    val client = Seq("org.scalatest" %% "scalatest" % "2.0.M5b" % "test")
+    val client = Seq("org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
+      "com.typesafe.akka"  %% "akka-remote" % akkaVersion,
+      "com.typesafe.akka"  %% "akka-actor" % akkaVersion,
+      "com.typesafe.akka"  %% "akka-testkit" % akkaVersion)
   }
 }
