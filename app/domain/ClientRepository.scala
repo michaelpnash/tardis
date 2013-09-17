@@ -20,5 +20,10 @@ class ClientRepository {
   def recordSubscription(ref: ActorRef, subscription: Subscription): Client = 
     store(
       findOrCreate(subscription.clientId).withNode(ClientNode(ref, System.currentTimeMillis)).withSubscriptions(subscription.eventTypes))
+
+  def recordPublished(clientId: String, publishedType: String): Client =
+    store(
+      findOrCreate(clientId).withPublishes(publishedType)
+    )
   
 }

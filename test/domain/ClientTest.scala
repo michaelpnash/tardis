@@ -16,12 +16,12 @@ class ClientTest extends FreeSpec with BeforeAndAfterAll {
       val withNode = client.withNode(node)
       assert(withNode.nodes === Set(node))
     }
-    "will not add the same node again" in {
+    "will update and not duplicate an existing node" in {
       val client = Client("foo")
       val node = ClientNode(ref1, 0l)
-      val node2 = ClientNode(ref1, 0l)
+      val node2 = ClientNode(ref1, 14l)
       val withNode = client.withNode(node).withNode(node2)
-      assert(withNode.nodes === Set(node))
+      assert(withNode.nodes === Set(node2))
     }
     "can remove nodes that have not been heard from in a set timeout" in {
       val client = Client("foo")
@@ -33,13 +33,18 @@ class ClientTest extends FreeSpec with BeforeAndAfterAll {
     }
     "can route messages to one of it's nodes" in {
     }
-    "can update a node's last subscription date, returning a new client" in {
-    }
     "can add to it's list of subscribed types" in {
       val type1 = "type1"
       val type2 = "type2"
       val client = Client("id")
       val updated = client.withSubscriptions(List(type1, type2))
+      assert(updated.subscribes === Set(EventType(type1, ""), EventType(type2, "")))
+    }
+    "can add to it's list of published types" in {
+      val type1 = "type1"
+      val type2 = "type2"
+      val client = Client("id", publishes = Set(EventType(type2, "")))
+      val updated = client.withPublishes(type2)
       assert(updated.subscribes === Set(EventType(type1, ""), EventType(type2, "")))
     }
   }

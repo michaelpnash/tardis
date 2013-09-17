@@ -42,9 +42,20 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       repo.recordSubscription(ref1, Subscription(id, List(fooType)))
       val updatedClient = repo.findOrCreate(id)
       assert(updatedClient.nodes.size === 1)
+      val firstNode = updatedClient.nodes.head
+      assert(firstNode.lastSubscription > 0)
+      assert(firstNode.ref === ref1)
       assert(updatedClient.subscribes === Set(EventType(fooType, "")))
     }
     "will update a client with new publishes information" in {
+      val repo = new ClientRepository
+      val id = "bar"
+      val client = Client(id)
+      val fooType = "foo"
+      repo.store(client)
+      val publishedType = "other"
+      repo.recordPublished(id, publishedType)
+      assert(repo.findOrCreate(id).publishes === Set(EventType(publishedType, "")))
     }
   }
 
