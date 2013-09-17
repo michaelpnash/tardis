@@ -4,18 +4,25 @@ import java.util.UUID
 
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.{Future, Await}
+import scala.concurrent.duration._
 
 import akka.actor._
 import com.typesafe.config._
 
 object TardisProxy {
-  // def apply(clientId: String) = {
-  //   val system = ActorSystem("client", ConfigFactory.load("client"))
-  //   val busSelection = system.actorSelection("akka.tcp://tardis@127.0.0.1:9999/user/eventrouter")
-    
-  //   val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
-  //   new TardisProxy(clientId, bus, proxyActor)
-  // }
+  def apply(clientId: String) = {
+    val system = ActorSystem("client", ConfigFactory.load("client"))
+    val busSelection = system.actorSelection("akka.tcp://tardis@127.0.0.1:9999/user/eventrouter")
+    implicit val timeout = Timeout(5 seconds)
+    val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
+    val busIdentity = Await.result(future, 3 seconds).asInstanceOf[ActorIdentity]
+    val bus = busIdentity.ref.getOrElse(throw new RuntimeException("Can't contact the bus"))
+    val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
+    new TardisProxy(clientId, bus, proxyActor)
+  }
 }
 
 class TardisProxy(clientId: String, bus: ActorRef, proxyActor: ActorRef) {
