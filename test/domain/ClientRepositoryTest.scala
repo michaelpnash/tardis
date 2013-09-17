@@ -3,10 +3,12 @@ package domain
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 import akka.actor._
 import com.jglobal.tardis._
+import com.typesafe.config._
 
 class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
-  val system = ActorSystem("test-client-repo")
-
+  val config = ConfigFactory.load()
+  val system = ActorSystem("test-client-repo", config.getConfig("test").withFallback(config))
+  
   val ref1 = system.actorOf(Props[TestActor1])
   val ref2 = system.actorOf(Props[TestActor2])
   
@@ -19,15 +21,15 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
     }
     "will return an existing client when it does exist" in {
       val repo = new ClientRepository
-      val client = Client("bar", subscribes = List(EventType("name", "descrip")))
+      val client = Client("bar", subscribes = Set(EventType("name", "descrip")))
       repo.store(client)
       assert(repo.findOrCreate("bar") === client)
     }
     "will overwrite a client with the same id when storing" in {
       val repo = new ClientRepository
-      val client = Client("baz", subscribes = List(EventType("name", "descrip")))
+      val client = Client("baz", subscribes = Set(EventType("name", "descrip")))
       repo.store(client)
-      val newBaz = Client("baz", subscribes = List(EventType("other", "some")))
+      val newBaz = Client("baz", subscribes = Set(EventType("other", "some")))
       repo.store(newBaz)
       assert(repo.findOrCreate("baz") === newBaz)
     }
@@ -38,7 +40,9 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val fooType = "foo"
       repo.store(client)
       repo.recordSubscription(ref1, Subscription(id, List(fooType)))
-
+      val updatedClient = repo.findOrCreate(id)
+      assert(updatedClient.nodes.size === 1)
+      assert(updatedClient.subscribes === Set(EventType(fooType, "")))
     }
     "will update a client with new publishes information" in {
     }

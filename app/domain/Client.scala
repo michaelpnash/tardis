@@ -2,12 +2,13 @@ package domain
 
 import akka.actor.ActorRef
 
-case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: List[EventType] = List(), publishes: List[EventType] = List()) {
+case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[EventType] = Set(), publishes: List[EventType] = List()) {
   val timeout = 30000
   def withNode(node: ClientNode): Client = 
     Client(id, nodes.filter(_.ref != node.ref) + node, subscribes, publishes)
   def withoutStaleNodes = 
       Client(id, nodes.filter(_.lastSubscription > (System.currentTimeMillis - timeout)), subscribes, publishes)
+  def withSubscriptions(eventTypes: List[String]) = Client(id, nodes, subscribes ++ eventTypes.map(et => EventType(et, "")), publishes)
 }
 
 case class ClientNode(ref: ActorRef, lastSubscription: Long)

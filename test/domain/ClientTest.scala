@@ -35,6 +35,13 @@ class ClientTest extends FreeSpec with BeforeAndAfterAll {
     }
     "can update a node's last subscription date, returning a new client" in {
     }
+    "can add to it's list of subscribed types" in {
+      val type1 = "type1"
+      val type2 = "type2"
+      val client = Client("id")
+      val updated = client.withSubscriptions(List(type1, type2))
+      assert(updated.subscribes === Set(EventType(type1, ""), EventType(type2, "")))
+    }
   }
 
   override def afterAll() {

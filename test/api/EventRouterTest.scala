@@ -1,8 +1,14 @@
 package api
 
-import org.scalatest.FreeSpec
+import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 
-class EventRouterTest extends FreeSpec {
+import akka.actor._
+import com.jglobal.tardis._
+import com.typesafe.config._
+
+class EventRouterTest extends FreeSpec with BeforeAndAfterAll {
+  val config = ConfigFactory.load()
+  val system = ActorSystem("test-client-repo", config.getConfig("test").withFallback(config))
   "the event router class" - {
     "when receiving a subscription message" - {
       "updates the appropriate client in the client repository" in {
@@ -16,5 +22,9 @@ class EventRouterTest extends FreeSpec {
     }
     "when receiving an ack" - {
     }
+  }
+
+  override def afterAll() {
+    system.shutdown
   }
 }
