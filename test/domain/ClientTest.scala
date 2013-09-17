@@ -2,10 +2,11 @@ package domain
 
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 import akka.actor._
+import com.typesafe.config._
 
 class ClientTest extends FreeSpec with BeforeAndAfterAll {
-  val system = ActorSystem("test-client")
-  
+  val system = ActorSystem("test-router", ConfigFactory.load().getConfig("test"))
+
   val ref1 = system.actorOf(Props[TestActor1])
   val ref2 = system.actorOf(Props[TestActor2])
   

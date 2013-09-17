@@ -24,7 +24,7 @@ class TardisModule(val system: ActorSystem) {
   lazy val clientRepository = wire[ClientRepository]
 
   val subscriptionActor = system.actorOf(SubscriptionActor.props(clientRepository), name = "subscriber")
-  val eventRouterActor = system.actorOf(EventRouterActor.props(subscriptionActor), name = "eventrouter")
+  val eventRouterActor = system.actorOf(EventRouterActor.props(subscriptionActor, clientRepository), name = "eventrouter")
   
   def getController[A](classRef: Class[A]): A = classRef match {
     case x if x.isAssignableFrom(classOf[Application]) => application.asInstanceOf[A]

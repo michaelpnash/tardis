@@ -6,16 +6,17 @@ import akka.actor._
 import java.util.UUID
 
 object EventRouterActor {
-  def props(subscriberActor: ActorRef): Props = Props(classOf[EventRouterActor], subscriberActor)
+  def props(subscriberActor: ActorRef, clientRepo: ClientRepository): Props = Props(classOf[EventRouterActor], subscriberActor, clientRepo)
 }
 
-class EventRouterActor(subscriberActor: ActorRef) extends Actor with ActorLogging {
+class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository) extends Actor with ActorLogging {
   
   def receive = {
     case subscription: Subscription => subscriberActor forward subscription 
-    case container: EventContainer => {
-      println(s"Got a message: $container")
-      sender ! Ack(container.id)
+    case event: EventContainer => {
+      println(s"Got event $event")
+      clientRepo.recordPublished(event.clientId, event.eventType)
+      sender ! Ack(event.id)
     }
   }
 }
