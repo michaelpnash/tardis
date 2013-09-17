@@ -24,5 +24,17 @@ class ClientRepository {
   def recordPublished(clientId: String, publishedType: String): Client =
     store(
       findOrCreate(clientId).withPublishes(publishedType)
-    )  
+    )
+
+  def subscribersOf(eventType: EventType) = clients.values.filter(_.subscribes.contains(eventType))
 }
+
+
+
+
+
+
+
+
+
+

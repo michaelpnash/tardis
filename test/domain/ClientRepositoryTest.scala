@@ -56,6 +56,15 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       repo.recordPublished(id, publishedType)
       assert(repo.findOrCreate(id).publishes === Set(EventType(publishedType, "")))
     }
+    "can return a set of all clients that subscribe to a specified event type" in {
+      val type1 = "type1"
+      val type2 = "type2"
+      val repo = new ClientRepository
+      val client1 = repo.store(Client("id1", subscribes = Set(EventType(type1), EventType(type2))))
+      val client2 = repo.store(Client("id2", subscribes = Set(EventType(type1))))
+      val client3 = repo.store(Client("id3", subscribes = Set(EventType(type2))))
+      assert(repo.subscribersOf(EventType(type1)) === List(client1, client2))
+    }
   }
 
  override def afterAll() {
