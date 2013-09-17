@@ -8,7 +8,7 @@ import scala.collection.mutable.SynchronizedMap
 
 class ClientRepository {
   val clients = new collection.mutable.HashMap[String, Client] with SynchronizedMap[String, Client]
-  def findOrCreate(id: String) = clients.get(id).getOrElse({
+  def findOrCreate(id: String)(implicit system: ActorSystem) = clients.get(id).getOrElse({
     val client = Client(id)
     clients.put(client.id, client)
     client
@@ -17,11 +17,11 @@ class ClientRepository {
     clients.put(client.id, client)
     client
   }
-  def recordSubscription(ref: ActorRef, subscription: Subscription): Client = 
+  def recordSubscription(ref: ActorRef, subscription: Subscription)(implicit system: ActorSystem): Client = 
     store(
       findOrCreate(subscription.clientId).withNode(ClientNode(ref, System.currentTimeMillis)).withSubscriptions(subscription.eventTypes))
 
-  def recordPublished(clientId: String, publishedType: String): Client =
+  def recordPublished(clientId: String, publishedType: String)(implicit system: ActorSystem): Client =
     store(
       findOrCreate(clientId).withPublishes(publishedType)
     )

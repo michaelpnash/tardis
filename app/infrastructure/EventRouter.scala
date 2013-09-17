@@ -15,7 +15,7 @@ class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository) 
     case subscription: Subscription => subscriberActor forward subscription 
     case event: EventContainer => {
       println(s"Got event $event")
-      clientRepo.recordPublished(event.clientId, event.eventType)
+      clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
       sender ! Ack(event.id)
     }
   }
@@ -29,7 +29,7 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
    def receive = {
     case subscription: Subscription => {
       println("Recording subscription" * 10)
-      clientRepository.recordSubscription(sender, subscription)
+      clientRepository.recordSubscription(sender, subscription)(context.system)
       sender ! "Ok" 
     }
   }

@@ -7,10 +7,10 @@ import com.typesafe.config._
 
 class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
   val config = ConfigFactory.load()
-  val system = ActorSystem("test-client-repo", config.getConfig("test").withFallback(config))
+  implicit val system = ActorSystem("test-client-repo", config.getConfig("test").withFallback(config))
   
-  val ref1 = system.actorOf(Props[TestActor1])
-  val ref2 = system.actorOf(Props[TestActor2])
+  val ref1 = system.actorOf(Props[TestActor])
+  val ref2 = system.actorOf(Props[TestActor])
   
   "a client repository" - {
     "will create a new client with the specified id when finding a client that does not exist" in {

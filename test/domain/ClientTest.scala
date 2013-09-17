@@ -3,12 +3,19 @@ package domain
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 import akka.actor._
 import com.typesafe.config._
+import com.jglobal.tardis._
+import akka.testkit._
+import java.util.UUID
 
-class ClientTest extends FreeSpec with BeforeAndAfterAll {
-  val system = ActorSystem("test-router", ConfigFactory.load().getConfig("test"))
+class ClientTest(system: ActorSystem) extends TestKit(system) with FreeSpec with BeforeAndAfterAll {
+  def this() = this(ActorSystem("test-router", ConfigFactory.load().getConfig("test")))
 
-  val ref1 = system.actorOf(Props[TestActor1])
-  val ref2 = system.actorOf(Props[TestActor2])
+  implicit val implSys = system
+
+  val ref1 = TestActorRef(Props[TestActor])
+  val actor1: Recording = ref1.underlyingActor
+  val ref2 = TestActorRef(Props[TestActor])
+  val actor2: Recording = ref2.underlyingActor
   
   "the client" - {
     "can add a new node to itself, returning the new client" in {
@@ -33,6 +40,11 @@ class ClientTest extends FreeSpec with BeforeAndAfterAll {
       assert(without.nodes === Set(node2))
     }
     "can route messages to one of it's nodes" in {
+      val type1 = "type1"
+      val client = Client("id", Set(ClientNode(ref1, 0l), ClientNode(ref2, 0l)), subscribes = Set(EventType(type1)))
+      val event = EventContainer(UUID.randomUUID, type1, "payload", client.id)
+      client.sendEvent(event)
+      awaitAssert(actor1.received.toList ++ actor2.received.toList === List(event))
     }
     "can add to it's list of subscribed types" in {
       val type1 = "type1"
@@ -55,14 +67,17 @@ class ClientTest extends FreeSpec with BeforeAndAfterAll {
   }
 }
 
-class TestActor1 extends Actor {
-  def receive = {
-    case _ => {}
-  }
+trait Recording {
+  val received = collection.mutable.ListBuffer[EventContainer]()
 }
 
-class TestActor2 extends Actor {
+class TestActor extends Actor with Recording {
   def receive = {
-    case _ => {}
+    case container: EventContainer => {
+      println(s"Test actor received $container")
+      received.append(container)
+      assert(received.size > 0)
+    }
+    case _ => throw new IllegalArgumentException("Unknown message")
   }
 }
