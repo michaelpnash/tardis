@@ -4,13 +4,17 @@ import org.scalatest.FreeSpec
 
 class EventRouterTest extends FreeSpec {
   "the event router class" - {
-    "when receiving a client node message" - {
-      "adds that client node to the list of known nodes" in {
+    "when receiving a subscription message" - {
+      "updates the appropriate client in the client repository" in {
       }
     }
-    "when receiving an event message" - {
-      "sends that event to all clients who subscribe to that event type" in {
+    "when receiving a published event" - {
+      "updates the appropriate client" in {
       }
+      "sends the event to all subscriber clients" in {
+      }
+    }
+    "when receiving an ack" - {
     }
   }
 }

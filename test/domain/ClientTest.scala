@@ -4,10 +4,10 @@ import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 import akka.actor._
 
 class ClientTest extends FreeSpec with BeforeAndAfterAll {
-  val system = ActorSystem("test")
+  val system = ActorSystem("test-client")
   
   val ref1 = system.actorOf(Props[TestActor1])
-  def ref2 = system.actorOf(Props[TestActor2])
+  val ref2 = system.actorOf(Props[TestActor2])
   
   "the client" - {
     "can add a new node to itself, returning the new client" in {

@@ -1,5 +1,8 @@
 package domain
 
+import akka.actor._
+import com.jglobal.tardis._
+
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
 
@@ -14,4 +17,5 @@ class ClientRepository {
     clients.put(client.id, client)
     client
   }
+  def recordSubscription(ref: ActorRef, subscription: Subscription) {}
 }

@@ -1,8 +1,15 @@
 package domain
 
-import org.scalatest.FreeSpec
+import org.scalatest.{FreeSpec, BeforeAndAfterAll}
+import akka.actor._
+import com.jglobal.tardis._
 
-class ClientRepositoryTest extends FreeSpec {
+class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
+  val system = ActorSystem("test-client-repo")
+
+  val ref1 = system.actorOf(Props[TestActor1])
+  val ref2 = system.actorOf(Props[TestActor2])
+  
   "a client repository" - {
     "will create a new client with the specified id when finding a client that does not exist" in {
       val repo = new ClientRepository
@@ -24,5 +31,20 @@ class ClientRepositoryTest extends FreeSpec {
       repo.store(newBaz)
       assert(repo.findOrCreate("baz") === newBaz)
     }
+    "will update client with new node and subscription information" in {
+      val repo = new ClientRepository
+      val id = "bar"
+      val client = Client(id)
+      val fooType = "foo"
+      repo.store(client)
+      repo.recordSubscription(ref1, Subscription(id, List(fooType)))
+
+    }
+    "will update a client with new publishes information" in {
+    }
   }
+
+ override def afterAll() {
+   system.shutdown
+ }
 }
