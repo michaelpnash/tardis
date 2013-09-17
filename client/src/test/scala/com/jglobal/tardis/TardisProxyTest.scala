@@ -34,17 +34,17 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       proxy.publish(event, assertAck)
       awaitCond(received.contains(event))
     }
-    // "when receiving an ack from the server, sends it to the confirmation function" in {
-    //   val clientId = "clientId"
-    //   val proxy = new TardisProxy(clientId, busStub, system.actorOf(TardisProxyActor.props(busStub)))
-    //   val eventType = "foo"
-    //   val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
-    //   var receivedAck: Option[Ack] = None
-    //   val assertAck = { ack: Ack => receivedAck = Some(ack) }
-    //   proxy.publish(event, assertAck)
-    //   awaitCond(receivedAck.isDefined)
-    //   assert(receivedAck.get.id === event.id)
-    // }
+    "when receiving an ack from the server, sends it to the confirmation function" in {
+      val clientId = "clientId"
+      val proxy = new TardisProxy(clientId, busStub, system.actorOf(TardisProxyActor.props(busStub)))
+      val eventType = "foo"
+      val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
+      var receivedAck: Option[Ack] = None
+      val assertAck = { ack: Ack => receivedAck = Some(ack) }
+      proxy.publish(event, assertAck)
+      awaitCond(receivedAck.isDefined)
+      assert(receivedAck.get.id === event.id)
+    }
     // "when receiving an event from the server, sends it to the registered handler" in {
     // }
     // "when given an ack, sends it to the server" in {
@@ -63,6 +63,7 @@ object TestActor {
 class TestActor(received: ListBuffer[Any]) extends Actor {
   def receive = {
     case evt: EventContainer => {
+      println(s"Test actor got an event, acking it")
       received.append(evt)
       sender ! Ack(evt.id)
     }

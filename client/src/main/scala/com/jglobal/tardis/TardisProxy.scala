@@ -16,9 +16,9 @@ object TardisProxy {
   def apply(clientId: String) = {
     val system = ActorSystem("client", ConfigFactory.load("client"))
     val busSelection = system.actorSelection("akka.tcp://tardis@127.0.0.1:9999/user/eventrouter")
-    implicit val timeout = Timeout(5 seconds)
+    implicit val timeout = Timeout(10 seconds)
     val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
-    val busIdentity = Await.result(future, 3 seconds).asInstanceOf[ActorIdentity]
+    val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
     val bus = busIdentity.ref.getOrElse(throw new RuntimeException("Can't contact the bus"))
     val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
     new TardisProxy(clientId, bus, proxyActor)
@@ -48,15 +48,33 @@ object TardisProxyActor {
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 
 class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
+  val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
+  
   def receive = {
     case SendEvent(container, confirm) => {
       println("*" * 10 + "Sending event to bus")
+      pending.put(container.id, confirm)
       bus ! container
     }
     case subscription: Subscription => {
       println(s"Sending subscription $subscription to ${bus}")
       bus ! subscription
     }
+    case ack: Ack => {
+      println(s"Proxy got an ack $ack")
+      pending.get(ack.id) match {
+        case Some(f) => {
+          f(ack)
+          pending.remove(ack.id)
+        }
+        case None => {} // warning?
+      }
+    }
     case _ => {}
   }
 }
+
+
+
+
+
