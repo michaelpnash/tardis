@@ -5,6 +5,7 @@ import javax.sql.DataSource
 import akka.actor.ActorSystem
 import controllers.Application
 import infrastructure.api._
+import domain._
 
 object Global extends GlobalSettings {
   var module: TardisModule = _
@@ -20,8 +21,9 @@ class TardisModule(val system: ActorSystem) {
   import com.softwaremill.macwire.MacwireMacros._
 
   lazy val application = wire[Application]
+  lazy val clientRepository = wire[ClientRepository]
   
-  val eventRouterActor = system.actorOf(EventRouterActor.props("test"), name = "eventrouter")
+  val eventRouterActor = system.actorOf(EventRouterActor.props(clientRepository), name = "eventrouter")
   
   def getController[A](classRef: Class[A]): A = classRef match {
     case x if x.isAssignableFrom(classOf[Application]) => application.asInstanceOf[A]
