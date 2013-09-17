@@ -25,7 +25,7 @@ object SubscriptionActor {
 }
 
 class SubscriptionActor(name: String) extends Actor with ActorLogging {
-  def receive = {
+   def receive = {
     case subscription: Subscription => {
       println(("*" * 50) + "Got subscription from " + sender.path.address.toString)
       sender ! "Ok" 
