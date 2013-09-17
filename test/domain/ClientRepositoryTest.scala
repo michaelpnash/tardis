@@ -38,7 +38,6 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val id = "bar"
       val client = Client(id)
       val fooType = "foo"
-      repo.store(client)
       repo.recordSubscription(ref1, Subscription(id, List(fooType)))
       val updatedClient = repo.findOrCreate(id)
       assert(updatedClient.nodes.size === 1)

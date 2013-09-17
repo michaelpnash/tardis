@@ -6,11 +6,10 @@ import akka.actor._
 import java.util.UUID
 
 object EventRouterActor {
-  def props(clientRepository: ClientRepository): Props = Props(classOf[EventRouterActor], clientRepository)
+  def props(subscriberActor: ActorRef): Props = Props(classOf[EventRouterActor], subscriberActor)
 }
 
-class EventRouterActor(clientRepository: ClientRepository) extends Actor with ActorLogging {
-  val subscriberActor = context.actorOf(SubscriptionActor.props(clientRepository), name = "subscriptions")
+class EventRouterActor(subscriberActor: ActorRef) extends Actor with ActorLogging {
   
   def receive = {
     case subscription: Subscription => subscriberActor forward subscription 
@@ -28,7 +27,8 @@ object SubscriptionActor {
 class SubscriptionActor(clientRepository: ClientRepository) extends Actor with ActorLogging {
    def receive = {
     case subscription: Subscription => {
-      println(("*" * 50) + "Got subscription from " + sender.path.address.toString)
+      println("Recording subscription" * 10)
+      clientRepository.recordSubscription(sender, subscription)
       sender ! "Ok" 
     }
   }

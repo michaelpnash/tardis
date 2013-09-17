@@ -1,6 +1,6 @@
 package api
 
-import domain.ClientRepository
+import domain.{ClientRepository, EventType}
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 
 import akka.actor._
@@ -20,7 +20,12 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
     "when receiving a subscription message" - {
       "updates the appropriate client in the client repository" in {
         val clientRepo = new ClientRepository
-        val router = TestActorRef(new EventRouterActor(clientRepo))
+        val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
+        val router = TestActorRef(new EventRouterActor(subscriptionActor))
+        val id = "someId"
+        val eventType = "someType"
+        router ! Subscription(id, List(eventType))
+        assert(clientRepo.findOrCreate(id).subscribes === Set(EventType(eventType)))
       }
     }
     "when receiving a published event" - {
