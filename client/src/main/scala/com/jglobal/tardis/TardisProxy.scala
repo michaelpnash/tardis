@@ -5,23 +5,31 @@ import java.util.UUID
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
 import akka.pattern.ask
+import akka.pattern.AskTimeoutException
 import akka.util.Timeout
 import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
+import java.util.concurrent.TimeoutException
 
 import akka.actor._
 import com.typesafe.config._
 
 object TardisProxy {
-  def apply(clientId: String) = {
+  def apply(clientId: String, busHostAndPort: String = "127.0.0.1:9999") = {
     val system = ActorSystem("client", ConfigFactory.load("client"))
-    val busSelection = system.actorSelection("akka.tcp://tardis@127.0.0.1:9999/user/eventrouter")
-    implicit val timeout = Timeout(10 seconds)
-    val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
-    val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
-    val bus = busIdentity.ref.getOrElse(throw new RuntimeException("Can't contact the bus"))
-    val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
-    new TardisProxy(clientId, bus, proxyActor)
+    val address = s"akka.tcp://tardis@$busHostAndPort/user/eventrouter"
+    val busSelection = system.actorSelection(address)
+    try {
+      implicit val timeout = Timeout(10 seconds)
+      val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
+      val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
+      val bus = busIdentity.ref.getOrElse(throw new RuntimeException("Can't contact the bus"))
+      val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
+      new TardisProxy(clientId, bus, proxyActor)
+    } catch {
+      case ate: AskTimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
+      case toe: TimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
+    }
   }
 }
 
@@ -71,12 +79,15 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
       bus ! Subscription(handlerRegistered.subscription.clientId, handlers.keys.toList)
     }
     case ack: Ack => {
+      println(s"Received ack $ack in proxy")
       pending.get(ack.id) match {
         case Some(f) => {
           f(ack)
           pending.remove(ack.id)
         }
-        case None => {} // warning?
+        case None => {
+          log.error(s"Received an ack for id ${ack.id} which we do not have a pending handler for")
+        }
       }
     }
   }
