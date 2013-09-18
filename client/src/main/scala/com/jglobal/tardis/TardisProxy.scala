@@ -17,7 +17,7 @@ import com.typesafe.config._
 object TardisProxy {
   def apply(clientId: String, busHostAndPort: String = "127.0.0.1:9999") = {
     val system = ActorSystem("client", ConfigFactory.load("client"))
-    val address = s"akka.tcp://tardis@$busHostAndPort/user/eventrouter"
+    val address = s"akka.tcp://application@$busHostAndPort/user/eventrouter"
     val busSelection = system.actorSelection(address)
     try {
       implicit val timeout = Timeout(10 seconds)
@@ -33,7 +33,7 @@ object TardisProxy {
   }
 }
 
-class TardisProxy(clientId: String, bus: ActorRef, proxyActor: ActorRef) {
+class TardisProxy(val clientId: String, bus: ActorRef, proxyActor: ActorRef) {
 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
