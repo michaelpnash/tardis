@@ -37,7 +37,9 @@ class TardisProxy(clientId: String, bus: ActorRef, proxyActor: ActorRef) {
     handlers.put(eventType, handler)
     proxyActor ! Subscription(clientId, handlers.keys.toList)
   }
-  def ack(id: UUID) {}
+  def ack(id: UUID) {
+    proxyActor ! SendAck(Ack(id))
+  }
 }
 
 object TardisProxyActor {
@@ -45,6 +47,7 @@ object TardisProxyActor {
 }
 
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
+case class SendAck(ack: Ack)
 
 class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
   val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
@@ -56,6 +59,8 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
     }
     case subscription: Subscription => bus ! subscription
 
+    case SendAck(ack) => bus ! ack
+      
     case ack: Ack => {
       pending.get(ack.id) match {
         case Some(f) => {

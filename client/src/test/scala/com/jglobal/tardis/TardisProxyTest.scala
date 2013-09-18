@@ -47,8 +47,13 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
     }
     // "when receiving an event from the server, sends it to the registered handler" in {
     // }
-    // "when given an ack, sends it to the server" in {
-    // }
+    "when given an ack, sends it to the server" in {
+      val clientId = "clientId"
+      val proxy = new TardisProxy(clientId, busStub, system.actorOf(TardisProxyActor.props(busStub)))
+      val id = UUID.randomUUID
+      proxy.ack(id)
+      awaitCond(received.toList == List(Ack(id)))
+    }
   }
 
   override def afterAll() {
