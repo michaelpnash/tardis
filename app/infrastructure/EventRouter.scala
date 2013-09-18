@@ -17,6 +17,7 @@ class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository) 
       println(s"++++++++++++++++++++++++++++++ Got event $event")
       clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
       sender ! Ack(event.id)
+      clientRepo.subscribersOf(EventType(event.eventType)).foreach(_.sendEvent(event))
     }
     case Identify => sender ! ActorIdentity("tardis", Some(self))
   }
@@ -35,3 +36,5 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
     }
   }
 }
+
+
