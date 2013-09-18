@@ -27,16 +27,14 @@ object TardisProxy {
 
 class TardisProxy(clientId: String, bus: ActorRef, proxyActor: ActorRef) {
 
-   val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
-
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
   }
   
   def registerHandler(handler: (EventContainer) => Unit, eventType: String) {
-    handlers.put(eventType, handler)
-    proxyActor ! Subscription(clientId, handlers.keys.toList)
+    proxyActor ! HandlerRegistered(handler, Subscription(clientId, List(eventType)))
   }
+  
   def ack(id: UUID) {
     proxyActor ! SendAck(Ack(id))
   }
@@ -48,9 +46,11 @@ object TardisProxyActor {
 
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 case class SendAck(ack: Ack)
+case class HandlerRegistered(handler: (EventContainer) => Unit, subscription: Subscription)
 
 class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
   val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
+  val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
   
   def receive = {
     case SendEvent(container, confirm) => {
@@ -60,7 +60,16 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
     case subscription: Subscription => bus ! subscription
 
     case SendAck(ack) => bus ! ack
-      
+
+    case container: EventContainer => {
+      println(s"Got an event container in proxy actor $container")
+      handlers.get(container.eventType).map(f => f(container))
+    }
+
+    case handlerRegistered: HandlerRegistered => {
+      handlers.put(handlerRegistered.subscription.eventTypes.head, handlerRegistered.handler)
+      bus ! Subscription(handlerRegistered.subscription.clientId, handlers.keys.toList)
+    }
     case ack: Ack => {
       pending.get(ack.id) match {
         case Some(f) => {

@@ -45,8 +45,19 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       awaitCond(receivedAck.isDefined)
       assert(receivedAck.get.id === event.id)
     }
-    // "when receiving an event from the server, sends it to the registered handler" in {
-    // }
+    "when receiving an event from the server, sends it to the registered handler" in {
+      val clientId = "clientId"
+      val proxyActor = system.actorOf(TardisProxyActor.props(busStub))
+      val proxy = new TardisProxy(clientId, busStub, proxyActor)
+      val eventType = "foo"
+      val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
+      var receivedEvent: Option[EventContainer] = None
+      val handler = { evt: EventContainer => receivedEvent = Some(evt) }
+      proxy.registerHandler(handler, eventType)
+      proxyActor ! event
+      awaitCond(receivedEvent.isDefined)
+      assert(receivedEvent.get === event)      
+    }
     "when given an ack, sends it to the server" in {
       val clientId = "clientId"
       val proxy = new TardisProxy(clientId, busStub, system.actorOf(TardisProxyActor.props(busStub)))
