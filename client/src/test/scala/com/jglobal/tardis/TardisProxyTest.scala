@@ -63,7 +63,7 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       val proxy = new TardisProxy(clientId, busStub, system.actorOf(TardisProxyActor.props(busStub)))
       val id = UUID.randomUUID
       proxy.ack(id)
-      awaitCond(received.toList == List(Ack(id)))
+      awaitCond(received.toList == List(Ack(id, clientId)))
     }
   }
 
@@ -80,7 +80,7 @@ class TestActor(received: ListBuffer[Any]) extends Actor {
   def receive = {
     case evt: EventContainer => {
       received.append(evt)
-      sender ! Ack(evt.id)
+      sender ! Ack(evt.id, evt.clientId)
     }
     case x: Any => received.append(x)
   }

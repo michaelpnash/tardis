@@ -40,7 +40,7 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
         router ! event
-        expectMsg(Ack(event.id))
+        expectMsg(Ack(event.id, event.clientId))
         assert(clientRepo.findOrCreate(id).publishes === Set(EventType(eventType)))
       }
       "sends an ack back to the sender of the event with the events id" in {
@@ -51,7 +51,7 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
         router ! event
-        expectMsg(Ack(event.id))
+        expectMsg(Ack(event.id, event.clientId))
       }
       "sends the event to all subscriber clients" in {
       }

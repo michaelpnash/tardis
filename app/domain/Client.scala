@@ -8,7 +8,7 @@ case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[Ev
   
   val timeout = 30000
 
-  lazy private[this] val router = system.actorOf(Props.empty.withRouter(
+  private[this] def router = system.actorOf(Props.empty.withRouter(
     RoundRobinRouter(routees = nodes.map(_.ref))))
 
   def withNode(node: ClientNode): Client =

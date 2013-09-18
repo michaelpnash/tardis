@@ -19,14 +19,14 @@ class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll {
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientid")
       proxy.publish(event, receiver)
       Thread.sleep(5000)
-      assert(ackReceived.get === Ack(event.id))
+      assert(ackReceived.get === Ack(event.id, event.clientId))
     }
   }
 }
 
 /* Port 9999 */
 class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll {
-  val system = ActorSystem("tardis")
+  val system = ActorSystem("application")
   "the tardis server" - {
     "should start up and run while the other tests complete" in {
       val module = new infrastructure.TardisModule(system)

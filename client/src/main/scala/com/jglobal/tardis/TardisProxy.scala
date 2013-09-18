@@ -44,7 +44,7 @@ class TardisProxy(val clientId: String, bus: ActorRef, proxyActor: ActorRef) {
   }
   
   def ack(id: UUID) {
-    proxyActor ! SendAck(Ack(id))
+    proxyActor ! SendAck(Ack(id, clientId))
   }
 }
 
