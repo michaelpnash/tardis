@@ -63,13 +63,9 @@ object TestActor {
 class TestActor(received: ListBuffer[Any]) extends Actor {
   def receive = {
     case evt: EventContainer => {
-      println(s"Test actor got an event, acking it")
       received.append(evt)
       sender ! Ack(evt.id)
     }
-    case x: Any => {
-      println(s"Test actor received $x")
-      received.append(x)
-    }
+    case x: Any => received.append(x)
   }
 }

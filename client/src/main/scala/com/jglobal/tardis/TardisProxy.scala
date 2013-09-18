@@ -35,7 +35,6 @@ class TardisProxy(clientId: String, bus: ActorRef, proxyActor: ActorRef) {
   
   def registerHandler(handler: (EventContainer) => Unit, eventType: String) {
     handlers.put(eventType, handler)
-    println(s"Sending a list of ${handlers.size} types to subscription")
     proxyActor ! Subscription(clientId, handlers.keys.toList)
   }
   def ack(id: UUID) {}
@@ -52,16 +51,12 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
   
   def receive = {
     case SendEvent(container, confirm) => {
-      println("*" * 10 + "Sending event to bus")
       pending.put(container.id, confirm)
       bus ! container
     }
-    case subscription: Subscription => {
-      println(s"Sending subscription $subscription to ${bus}")
-      bus ! subscription
-    }
+    case subscription: Subscription => bus ! subscription
+
     case ack: Ack => {
-      println(s"Proxy got an ack $ack")
       pending.get(ack.id) match {
         case Some(f) => {
           f(ack)
@@ -70,7 +65,6 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
         case None => {} // warning?
       }
     }
-    case _ => {}
   }
 }
 
