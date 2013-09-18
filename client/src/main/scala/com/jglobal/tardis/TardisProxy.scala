@@ -23,7 +23,7 @@ object TardisProxy {
       implicit val timeout = Timeout(10 seconds)
       val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
       val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
-      val bus = busIdentity.ref.getOrElse(throw new RuntimeException("Can't contact the bus"))
+      val bus = busIdentity.ref.getOrElse(throw new RuntimeException(s"Can't contact the bus at $address"))
       val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
       new TardisProxy(clientId, bus, proxyActor)
     } catch {
@@ -65,21 +65,22 @@ class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
       pending.put(container.id, confirm)
       bus ! container
     }
-    case subscription: Subscription => bus ! subscription
 
     case SendAck(ack) => bus ! ack
 
-    case container: EventContainer => {
-      println(s"Got an event container in proxy actor $container")
-      handlers.get(container.eventType).map(f => f(container))
-    }
+    case container: EventContainer => handlers.get(container.eventType).map(f => f(container))
 
     case handlerRegistered: HandlerRegistered => {
       handlers.put(handlerRegistered.subscription.eventTypes.head, handlerRegistered.handler)
-      bus ! Subscription(handlerRegistered.subscription.clientId, handlers.keys.toList)
+      self ! handlerRegistered.subscription
     }
+
+    case subscription: Subscription => {
+      bus ! Subscription(subscription.clientId, handlers.keys.toList)
+      context.system.scheduler.scheduleOnce(15 seconds, self, subscription)(context.dispatcher)
+    }
+      
     case ack: Ack => {
-      println(s"Received ack $ack in proxy")
       pending.get(ack.id) match {
         case Some(f) => {
           f(ack)
