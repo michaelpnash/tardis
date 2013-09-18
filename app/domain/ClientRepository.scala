@@ -26,4 +26,8 @@ class ClientRepository {
     )
 
   def subscribersOf(eventType: EventType) = clients.values.filter(_.subscribes.contains(eventType))
+
+  def flush {
+    clients.map(p => clients.put(p._1, p._2.withoutStaleNodes))
+  }
 }
