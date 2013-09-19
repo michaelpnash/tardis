@@ -5,7 +5,24 @@ import com.jglobal.tardis._
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.SynchronizedMap
 
-class ClientRepository {
+trait ClientRepository {
+
+  def list: Iterable[Client]
+  
+  def findOrCreate(id: String)(implicit system: ActorSystem): Client
+
+  def store(client: Client): Client
+  
+  def recordSubscription(ref: ActorRef, subscription: Subscription)(implicit system: ActorSystem): Client
+
+  def recordPublished(clientId: String, publishedType: String)(implicit system: ActorSystem): Client
+  
+  def subscribersOf(eventType: EventType): Iterable[Client]
+
+  def flush: Unit
+}
+
+class TransientClientRepository extends ClientRepository {
   val clients = new collection.mutable.HashMap[String, Client] with SynchronizedMap[String, Client]
 
   def list = clients.values

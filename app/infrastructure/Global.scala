@@ -22,7 +22,7 @@ class TardisModule(val system: ActorSystem) {
   implicit val implSystem = system
   
   lazy val application = wire[Application]
-  lazy val clientRepository = wire[ClientRepository]
+  lazy val clientRepository: ClientRepository = wire[TransientClientRepository]
   lazy val unackRepository: UnacknowledgedRepository = wire[UnacknowledgedRepository]
 
   val subscriptionActor = system.actorOf(SubscriptionActor.props(clientRepository), name = "subscriber")
