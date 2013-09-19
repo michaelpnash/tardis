@@ -3,13 +3,14 @@ package domain
 import com.jglobal.tardis._
 import akka.actor._
 import akka.routing.RoundRobinRouter
+import scala.util.Random
 
 case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[EventType] = Set(), publishes: Set[EventType] = Set())(implicit system: ActorSystem) {
   
   val timeout = 30000
+  val random = new Random(System.currentTimeMillis)
 
-  private[this] def router = system.actorOf(Props.empty.withRouter(
-    RoundRobinRouter(routees = nodes.map(_.ref))))
+  private[this] def selected = nodes.toVector(random.nextInt(nodes.size)).ref
 
   def withNode(node: ClientNode): Client =
     Client(id, nodes.filter(_.ref != node.ref) + node, subscribes, publishes)
@@ -23,7 +24,7 @@ case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[Ev
 
   def sendEvent(container: EventContainer): EventContainer = {
     println(s"Sending event $container to ${nodes.size} nodes")
-    router ! container
+    selected ! container
     container
   }
 }
