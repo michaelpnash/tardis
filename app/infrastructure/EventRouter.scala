@@ -10,14 +10,18 @@ import scala.concurrent.duration._
 case object Retry
 
 object EventRouterActor {
-  def props(subscriberActor: ActorRef, clientRepo: ClientRepository, unackRepo: UnacknowledgedRepository): Props =
-    Props(classOf[EventRouterActor], subscriberActor, clientRepo, unackRepo)
+  def props(subscriberActor: ActorRef, clientRepo: ClientRepository,
+    unackRepo: UnacknowledgedRepository, eventRepo: EventRepository): Props =
+    Props(classOf[EventRouterActor], subscriberActor, clientRepo, unackRepo, eventRepo)
 }
 
 case class ClientIdAndEventId(clientId: String, eventId: UUID)
 case class EventContainerAndTimeStamp(container: EventContainer, timestamp: Long)
 
-class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository, unacknowledgedRepo: UnacknowledgedRepository) extends Actor with ActorLogging {
+class EventRouterActor(subscriberActor: ActorRef,
+  clientRepo: ClientRepository,
+  unacknowledgedRepo: UnacknowledgedRepository,
+  eventRepo: EventRepository) extends Actor with ActorLogging {
 
   override def preStart() {
     self ! Retry
@@ -27,11 +31,11 @@ class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository, 
     case subscription: Subscription => subscriberActor forward subscription 
     case event: EventContainer => {
       clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
-      sender ! Ack(event.id, event.clientId)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
       })
+      sender ! Ack(event.id, event.clientId)
     }
     case ack: Ack => unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
 
@@ -85,5 +89,38 @@ class UnacknowledgedRepository(clientRepo: ClientRepository, system: ActorSystem
   }
   def remove(clientAndEventId: ClientIdAndEventId) {
     unacknowledged.remove(clientAndEventId)
+  }
+}
+
+// def findFiles(path: File): List[File]  =
+//   path :: path.listFiles.filter {
+//     _.isDirectory
+//   }.toList.flatMap {
+//     findFiles(_)
+//   }
+import java.io.File
+
+class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientRepository, system: ActorSystem) extends UnacknowledgedRepository(clientRepo, system) {
+  require(!path.endsWith("/"), s"Path must not end with a /, but $path does")
+  val unackDir = new File(path + "/unacknowledged/")
+  if (!unackDir.exists) unackDir.mkdirs()
+  assert(unackDir.exists && unackDir.isDirectory, s"Directory ${unackDir.getPath} does not exist or is not a directory!")
+  assert(unackDir.canRead && unackDir.canWrite, s"Directory ${unackDir.getPath} cannot be read from and written to!")
+
+  initialLoad
+
+  def initialLoad { //TODO: Probably want a limit on how many we attempt to load
+    // clients ++= unackDir.listFiles().toList.filter(_.isFile).map(file => {
+    //   val client = SerializableClient.fromStr(fromFile(file).getLines.mkString("\n"))(system)
+    //   (client.id, client)
+    // })
+  }
+
+  override def remove(clientAndEventId: ClientIdAndEventId) {
+    super.remove(clientAndEventId)
+  }
+  
+  override def store(clientAndEventId: ClientIdAndEventId, containerAndTimeStamp: EventContainerAndTimeStamp) {
+    super.store(clientAndEventId, containerAndTimeStamp)
   }
 }

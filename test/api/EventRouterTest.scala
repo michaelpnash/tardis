@@ -1,6 +1,6 @@
 package api
 
-import domain.{ClientRepository, TransientClientRepository, EventType}
+import domain.{ClientRepository, TransientClientRepository, EventType, EventRepository}
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 
 import akka.actor._
@@ -24,7 +24,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val clientRepo = new TransientClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
         val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
+        val eventRepo = new EventRepository
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
         val id = "someId"
         val eventType = "someType"
         router ! Subscription(id, List(eventType))
@@ -37,7 +38,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val clientRepo = new TransientClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
         val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
+        val eventRepo = new EventRepository
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
@@ -49,7 +51,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val clientRepo = new TransientClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
         val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
+        val eventRepo = new EventRepository
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
