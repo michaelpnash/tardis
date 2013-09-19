@@ -8,10 +8,21 @@ import domain.Client
 import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import java.io.File
+import domain.PersistentClientRepository
 
 class PersistentClientRepositoryTest extends FreeSpec {
+  val testDir = "/tmp"
   "the persistent client repository" - {
     "can persist clients between instantiations" in {
+      val target = new File(testDir + "/test/")
+      target.mkdirs()
+      target.delete()
+      val repo = new PersistentClientRepository(target.getPath, null)
+      val client1 = Client("id1", subscribes = Set(EventType("one"), EventType("two")), publishes = Set(EventType("two"), EventType("three")))(null)
+      val client2 = Client("id2", subscribes = Set(EventType("three"), EventType("two")), publishes = Set(EventType("four"), EventType("three")))(null)
+      repo.store(client1)
+      repo.store(client2)
     }
   }
 }

@@ -12,14 +12,14 @@ object SerializableClient {
   case class ClientDAO(id: String, subscribes: Set[String], publishes: Set[String])
   implicit val clientDAOWrites: Writes[ClientDAO] = (
     (JsPath \ "id").write[String] and
-      (JsPath \ "subscribes").write[Set[String]] and
-      (JsPath \ "publishes").write[Set[String]]
+    (JsPath \ "subscribes").write[Set[String]] and
+    (JsPath \ "publishes").write[Set[String]]
   )(unlift(ClientDAO.unapply))
 
   implicit val clientDAOReads: Reads[ClientDAO] = (
     (JsPath \ "id").read[String] and
-      (JsPath \ "subscribes").read[Set[String]] and
-      (JsPath \ "publishes").read[Set[String]]
+    (JsPath \ "subscribes").read[Set[String]] and
+    (JsPath \ "publishes").read[Set[String]]
   )(ClientDAO.apply _)
 
   def toStr(original: Client) = Json.toJson(ClientDAO(original.id, original.subscribes.map(_.name), original.publishes.map(_.name))).toString
