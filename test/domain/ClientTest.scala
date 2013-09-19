@@ -51,14 +51,14 @@ class ClientTest(system: ActorSystem) extends TestKit(system) with FreeSpec with
       val type2 = "type2"
       val client = Client("id")
       val updated = client.withSubscriptions(List(type1, type2))
-      assert(updated.subscribes === Set(EventType(type1, ""), EventType(type2, "")))
+      assert(updated.subscribes === Set(EventType(type1), EventType(type2)))
     }
     "can add to it's list of published types" in {
       val type1 = "type1"
       val type2 = "type2"
-      val client = Client("id", publishes = Set(EventType(type1, "")))
+      val client = Client("id", publishes = Set(EventType(type1)))
       val updated = client.withPublishes(type2)
-      assert(updated.publishes === Set(EventType(type1, ""), EventType(type2, "")))
+      assert(updated.publishes === Set(EventType(type1), EventType(type2)))
     }
   }
 

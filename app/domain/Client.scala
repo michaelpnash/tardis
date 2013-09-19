@@ -17,9 +17,9 @@ case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[Ev
   def withoutStaleNodes =
       Client(id, nodes.filter(_.lastSubscription > (System.currentTimeMillis - timeout)), subscribes, publishes)
 
-  def withSubscriptions(eventTypes: List[String]) = Client(id, nodes, subscribes ++ eventTypes.map(et => EventType(et, "")), publishes)
+  def withSubscriptions(eventTypes: List[String]) = Client(id, nodes, subscribes ++ eventTypes.map(et => EventType(et)), publishes)
 
-  def withPublishes(eventType: String) = Client(id, nodes, subscribes, publishes + EventType(eventType, ""))
+  def withPublishes(eventType: String) = Client(id, nodes, subscribes, publishes + EventType(eventType))
 
   def sendEvent(container: EventContainer): EventContainer = {
     selected ! container

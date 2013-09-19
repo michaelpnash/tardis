@@ -21,15 +21,15 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
     }
     "will return an existing client when it does exist" in {
       val repo = new ClientRepository
-      val client = Client("bar", subscribes = Set(EventType("name", "descrip")))
+      val client = Client("bar", subscribes = Set(EventType("name")))
       repo.store(client)
       assert(repo.findOrCreate("bar") === client)
     }
     "will overwrite a client with the same id when storing" in {
       val repo = new ClientRepository
-      val client = Client("baz", subscribes = Set(EventType("name", "descrip")))
+      val client = Client("baz", subscribes = Set(EventType("name")))
       repo.store(client)
-      val newBaz = Client("baz", subscribes = Set(EventType("other", "some")))
+      val newBaz = Client("baz", subscribes = Set(EventType("other")))
       repo.store(newBaz)
       assert(repo.findOrCreate("baz") === newBaz)
     }
@@ -44,7 +44,7 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val firstNode = updatedClient.nodes.head
       assert(firstNode.lastSubscription > 0)
       assert(firstNode.ref === ref1)
-      assert(updatedClient.subscribes === Set(EventType(fooType, "")))
+      assert(updatedClient.subscribes === Set(EventType(fooType)))
     }
     "will update a client with new publishes information" in {
       val repo = new ClientRepository
@@ -54,7 +54,7 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       repo.store(client)
       val publishedType = "other"
       repo.recordPublished(id, publishedType)
-      assert(repo.findOrCreate(id).publishes === Set(EventType(publishedType, "")))
+      assert(repo.findOrCreate(id).publishes === Set(EventType(publishedType)))
     }
     "can return a set of all clients that subscribe to a specified event type" in {
       val type1 = "type1"
