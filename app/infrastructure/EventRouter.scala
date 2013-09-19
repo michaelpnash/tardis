@@ -10,14 +10,14 @@ import scala.concurrent.duration._
 case object Retry
 
 object EventRouterActor {
-  def props(subscriberActor: ActorRef, clientRepo: ClientRepository): Props = Props(classOf[EventRouterActor], subscriberActor, clientRepo)
+  def props(subscriberActor: ActorRef, clientRepo: ClientRepository, unackRepo: UnacknowledgedRepository): Props =
+    Props(classOf[EventRouterActor], subscriberActor, clientRepo, unackRepo)
 }
 
 case class ClientIdAndEventId(clientId: String, eventId: UUID)
 case class EventContainerAndTimeStamp(container: EventContainer, timestamp: Long)
 
-class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository) extends Actor with ActorLogging {
-  val unacknowledged = new collection.mutable.HashMap[ClientIdAndEventId, EventContainerAndTimeStamp] with SynchronizedMap[ClientIdAndEventId, EventContainerAndTimeStamp]
+class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository, unacknowledgedRepo: UnacknowledgedRepository) extends Actor with ActorLogging {
 
   override def preStart() {
     self ! Retry
@@ -29,23 +29,18 @@ class EventRouterActor(subscriberActor: ActorRef, clientRepo: ClientRepository) 
       clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
       sender ! Ack(event.id, event.clientId)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
-        unacknowledged.put(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
+        unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
       })
     }
-    case ack: Ack => unacknowledged.remove(ClientIdAndEventId(ack.clientId, ack.id))
+    case ack: Ack => unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
 
     case Identify => sender ! ActorIdentity("tardis", Some(self))
 
     case Retry => {
-      val minTime = System.currentTimeMillis - 30000
-      unacknowledged.filter(_._2.timestamp < minTime).foreach(pair => {
-        unacknowledged.remove(pair._1)
-        self ! pair._2.container
-      })
+      unacknowledgedRepo.dueForRetry.foreach(due => due._1.sendEvent(due._2))
       context.system.scheduler.scheduleOnce(30 seconds, self, Retry)(context.dispatcher)
     }
-
   }
 }
 
@@ -75,4 +70,20 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
  }
 }
 
+class UnacknowledgedRepository(clientRepo: ClientRepository, system: ActorSystem) {
+  val unacknowledged = new collection.mutable.HashMap[ClientIdAndEventId, EventContainerAndTimeStamp] with SynchronizedMap[ClientIdAndEventId, EventContainerAndTimeStamp]
 
+  def store(clientAndEventId: ClientIdAndEventId, containerAndTimeStamp: EventContainerAndTimeStamp) {
+    unacknowledged.put(clientAndEventId, containerAndTimeStamp)
+  }
+  def dueForRetry: Iterable[(Client, EventContainer)] = {
+    val minTime = System.currentTimeMillis - 30000
+    unacknowledged.filter(_._2.timestamp < minTime).map(pair => {
+      unacknowledged.remove(pair._1)
+      (clientRepo.findOrCreate(pair._1.clientId)(system), pair._2.container)
+    })
+  }
+  def remove(clientAndEventId: ClientIdAndEventId) {
+    unacknowledged.remove(clientAndEventId)
+  }
+}

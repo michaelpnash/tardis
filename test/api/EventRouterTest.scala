@@ -23,7 +23,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       "updates the appropriate client in the client repository" in {
         val clientRepo = new ClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo))
+        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo)
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
         val id = "someId"
         val eventType = "someType"
         router ! Subscription(id, List(eventType))
@@ -35,7 +36,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       "updates the appropriate client" in {
         val clientRepo = new ClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo))
+        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo)
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
@@ -46,7 +48,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       "sends an ack back to the sender of the event with the events id" in {
         val clientRepo = new ClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo))
+        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo)
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo))
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
