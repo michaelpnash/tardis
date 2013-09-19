@@ -24,8 +24,8 @@ object TardisProxy {
       val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
       val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
       val bus = busIdentity.ref.getOrElse(throw new RuntimeException(s"Can't contact the bus at $address"))
-      val proxyActor = system.actorOf(TardisProxyActor.props(bus), "busProxy")
-      new TardisProxy(clientId, bus, proxyActor)
+      val proxyActor = system.actorOf(TardisProxyActor.props(busSelection), "busProxy")
+      new TardisProxy(clientId, proxyActor)
     } catch {
       case ate: AskTimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
       case toe: TimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
@@ -33,7 +33,7 @@ object TardisProxy {
   }
 }
 
-class TardisProxy(val clientId: String, bus: ActorRef, proxyActor: ActorRef) {
+class TardisProxy(val clientId: String, proxyActor: ActorRef) {
 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
@@ -49,14 +49,14 @@ class TardisProxy(val clientId: String, bus: ActorRef, proxyActor: ActorRef) {
 }
 
 object TardisProxyActor {
-  def props(bus: ActorRef): Props = Props(classOf[TardisProxyActor], bus)
+  def props(bus: ActorSelection): Props = Props(classOf[TardisProxyActor], bus)
 }
 
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 case class SendAck(ack: Ack)
 case class HandlerRegistered(handler: (EventContainer) => Unit, subscription: Subscription)
 
-class TardisProxyActor(bus: ActorRef) extends Actor with ActorLogging {
+class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
   val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
   val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
   

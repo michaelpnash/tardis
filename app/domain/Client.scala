@@ -2,7 +2,6 @@ package domain
 
 import com.jglobal.tardis._
 import akka.actor._
-import akka.routing.RoundRobinRouter
 import scala.util.Random
 
 case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[EventType] = Set(), publishes: Set[EventType] = Set())(implicit system: ActorSystem) {
@@ -23,7 +22,6 @@ case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[Ev
   def withPublishes(eventType: String) = Client(id, nodes, subscribes, publishes + EventType(eventType, ""))
 
   def sendEvent(container: EventContainer): EventContainer = {
-    println(s"Sending event $container to ${nodes.size} nodes")
     selected ! container
     container
   }

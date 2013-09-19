@@ -7,6 +7,9 @@ import scala.collection.mutable.SynchronizedMap
 
 class ClientRepository {
   val clients = new collection.mutable.HashMap[String, Client] with SynchronizedMap[String, Client]
+
+  def list = clients.values
+  
   def findOrCreate(id: String)(implicit system: ActorSystem) = clients.get(id).getOrElse({
     val client = Client(id)
     clients.put(client.id, client)
