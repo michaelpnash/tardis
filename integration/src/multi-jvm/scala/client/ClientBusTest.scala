@@ -25,7 +25,7 @@ class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   var proxy: TardisProxy = _
   "the tardis client" - {
     "should send an event and receive the appropriate ack" in {
-      awaitAssert(() => TardisProxy.ping())
+      Thread.sleep(1000)
       proxy = TardisProxy("client1")
       var ackReceived: Option[Ack] = None
       val receiver = { ack: Ack => ackReceived = Some(ack) }
@@ -40,26 +40,25 @@ class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   }
 }
 
-/* Port 9999 */
-// class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll with AwaitAssert {
-//   val system = ActorSystem("application")
-//   "the tardis server" - {
-//     "should start up and run while the other tests complete" in {
-//       val module = new infrastructure.TardisModule(system)
-//       awaitAssert(() => TardisProxy.ping())
-//       Thread.sleep(65000)
-//     }
-//   }
+//Port 9999
+class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll with AwaitAssert {
+  val system = ActorSystem("application")
+  "the tardis server" - {
+    "should start up and run while the other tests complete" in {
+      val module = new infrastructure.TardisModule(system)
+      Thread.sleep(65000)
+    }
+  }
 
-//   override def afterAll() { if (system != null) system.shutdown  }
-// }
+  override def afterAll() { if (system != null) system.shutdown  }
+}
 
 /* Port 0, e.g. find a random free port */
 class SpecMultiJvmNode3 extends FreeSpec with BeforeAndAfterAll with AwaitAssert {
   var proxy: TardisProxy = _
   "the tardis proxy" - {
     "when sent an event that I subscribe to, should return that event to the proper handler" in {
-      awaitAssert(() => TardisProxy.ping())
+      Thread.sleep(1000)
       proxy = TardisProxy("client1")
       Thread.sleep(2000)
       var evtReceived: Option[EventContainer] = None
