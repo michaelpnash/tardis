@@ -32,7 +32,7 @@ This is an interactive client app to the TARDIS event router. You can type the f
   }
 
   def connect(address: String) = {
-    proxy = TardisProxy("commandline", address)
+    proxy = new TardisProxy("commandline", address)
     "Connected"
   }
 

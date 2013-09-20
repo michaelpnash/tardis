@@ -25,8 +25,8 @@ class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   var proxy: TardisProxy = _
   "the tardis client" - {
     "should send an event and receive the appropriate ack" in {
-      Thread.sleep(1000)
-      proxy = TardisProxy("client1")
+      proxy = new TardisProxy("client1")
+      awaitAssert(() => proxy.ping)
       var ackReceived: Option[Ack] = None
       val receiver = { ack: Ack => ackReceived = Some(ack) }
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientid")
@@ -58,9 +58,8 @@ class SpecMultiJvmNode3 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   var proxy: TardisProxy = _
   "the tardis proxy" - {
     "when sent an event that I subscribe to, should return that event to the proper handler" in {
-      Thread.sleep(1000)
-      proxy = TardisProxy("client1")
-      Thread.sleep(2000)
+      proxy = new TardisProxy("client1")
+      awaitAssert(() => proxy.ping)
       var evtReceived: Option[EventContainer] = None
       val handler = { evt: EventContainer => evtReceived = Some(evt) }
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientid")

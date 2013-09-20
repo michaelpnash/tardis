@@ -14,37 +14,27 @@ import java.util.concurrent.TimeoutException
 import akka.actor._
 import com.typesafe.config._
 
-object TardisProxy {
-  // def ping(busHostAndPort: String = "127.0.0.1:9999"): Boolean = {
-  //   val system = ActorSystem("clientPing", ConfigFactory.load("client"))
-  //   val address = s"akka.tcp://application@$busHostAndPort/user/eventrouter"
-  //   val busSelection = system.actorSelection(address)
-  //   val result = {
-  //     try {
-  //       implicit val timeout = Timeout(30 seconds)
-  //       val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
-  //       val busIdentity = Await.result(future, 30 seconds).asInstanceOf[ActorIdentity]
-  //       busIdentity.ref.isDefined
-  //     } catch {
-  //       case _: Throwable => false
-  //     }
-  //     true
-  //   }
-  //   system.shutdown
-  //   result
-  // }
-  def apply(clientId: String, busHostAndPort: String = "127.0.0.1:9999") = {
-    val system = ActorSystem("client", ConfigFactory.load("client"))
-    val address = s"akka.tcp://application@$busHostAndPort/user/eventrouter"
-    val busSelection = system.actorSelection(address)
-    //assert(ping(address), s"Cannot connect to tardis server at $address")
-    val proxyActor = system.actorOf(TardisProxyActor.props(busSelection), "busProxy")
-    new TardisProxy(clientId, proxyActor, system)
-  }
-}
-
 class TardisProxy(val clientId: String, proxyActor: ActorRef, system: ActorSystem) {
 
+  def this(clientId: String, busHostAndPort: String, system: ActorSystem) =
+    this(clientId, system.actorOf(TardisProxyActor.props(system.actorSelection(s"akka.tcp://application@$busHostAndPort/user/eventrouter"))), system)
+
+  def this(clientId: String, busHostAndPort: String = "127.0.0.1:9999") = this(clientId, busHostAndPort, ActorSystem("client", ConfigFactory.load("client")))
+
+  def ping: Boolean = {
+    val result = {
+      try {
+        implicit val timeout = Timeout(30 seconds)
+        val future: Future[Boolean] =
+          ask(proxyActor, Ping).mapTo[Boolean]
+        Await.result(future, 30 seconds).asInstanceOf[Boolean]
+      } catch {
+        case _: Throwable => false
+      }
+    }
+    result
+  }
+ 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
   }
@@ -66,6 +56,7 @@ object TardisProxyActor {
   def props(bus: ActorSelection): Props = Props(classOf[TardisProxyActor], bus)
 }
 
+case object Ping
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 case class SendAck(ack: Ack)
 case class HandlerRegistered(handler: (EventContainer) => Unit, subscription: Subscription)
@@ -81,6 +72,13 @@ class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
     }
 
     case SendAck(ack) => bus ! ack
+
+    case Ping => {
+        implicit val timeout = Timeout(30 seconds)
+        val future: Future[ActorIdentity] = ask(bus, Identify).mapTo[ActorIdentity]
+        val busIdentity = Await.result(future, 30 seconds).asInstanceOf[ActorIdentity]
+        sender ! busIdentity.ref.isDefined
+    }
 
     case container: EventContainer => handlers.get(container.eventType).map(f => f(container))
 
