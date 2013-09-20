@@ -39,7 +39,10 @@ class EventRouterActor(subscriberActor: ActorRef,
     }
     case ack: Ack => unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
 
-    case Identify => sender ! ActorIdentity("tardis", Some(self))
+    case Identify => {
+      println(s"Got request for identity from $sender")
+      sender ! ActorIdentity("tardis", Some(self))
+    }
 
     case Retry => {
       unacknowledgedRepo.dueForRetry.foreach(due => due._1.sendEvent(due._2))

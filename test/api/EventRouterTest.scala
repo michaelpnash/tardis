@@ -14,8 +14,7 @@ import java.util.UUID
 class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec with ImplicitSender with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("test-router", ConfigFactory.load().getConfig("test")))
-    //.withFallback(ConfigFactory.load())))
-
+   
   implicit val implSys = system
   
   "the event router class" - {

@@ -9,7 +9,6 @@ import play.api.libs.json.Json
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import java.io.File
-import domain.PersistentClientRepository
 
 class PersistentClientRepositoryTest extends FreeSpec {
   val testDir = "/tmp"

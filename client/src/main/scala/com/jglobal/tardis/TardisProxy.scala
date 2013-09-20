@@ -15,25 +15,35 @@ import akka.actor._
 import com.typesafe.config._
 
 object TardisProxy {
+  def ping(busHostAndPort: String = "127.0.0.1:9999"): Boolean = {
+    val system = ActorSystem("clientPing", ConfigFactory.load("client"))
+    val address = s"akka.tcp://application@$busHostAndPort/user/eventrouter"
+    val busSelection = system.actorSelection(address)
+    val result = {
+      try {
+        implicit val timeout = Timeout(30 seconds)
+        val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
+        val busIdentity = Await.result(future, 30 seconds).asInstanceOf[ActorIdentity]
+        busIdentity.ref.isDefined
+      } catch {
+        case _: Throwable => false
+      }
+      true
+    }
+    system.shutdown
+    result
+  }
   def apply(clientId: String, busHostAndPort: String = "127.0.0.1:9999") = {
     val system = ActorSystem("client", ConfigFactory.load("client"))
     val address = s"akka.tcp://application@$busHostAndPort/user/eventrouter"
     val busSelection = system.actorSelection(address)
-    try {
-      implicit val timeout = Timeout(10 seconds)
-      val future: Future[ActorIdentity] = ask(busSelection, Identify).mapTo[ActorIdentity]
-      val busIdentity = Await.result(future, 10 seconds).asInstanceOf[ActorIdentity]
-      val bus = busIdentity.ref.getOrElse(throw new RuntimeException(s"Can't contact the bus at $address"))
-      val proxyActor = system.actorOf(TardisProxyActor.props(busSelection), "busProxy")
-      new TardisProxy(clientId, proxyActor)
-    } catch {
-      case ate: AskTimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
-      case toe: TimeoutException => throw new RuntimeException(s"Cannot connect to tardis server at $address, timed out")
-    }
+    assert(ping(address), s"Cannot connect to tardis server at $address")
+    val proxyActor = system.actorOf(TardisProxyActor.props(busSelection), "busProxy")
+    new TardisProxy(clientId, proxyActor, system)
   }
 }
 
-class TardisProxy(val clientId: String, proxyActor: ActorRef) {
+class TardisProxy(val clientId: String, proxyActor: ActorRef, system: ActorSystem) {
 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
@@ -45,6 +55,10 @@ class TardisProxy(val clientId: String, proxyActor: ActorRef) {
   
   def ack(id: UUID) {
     proxyActor ! SendAck(Ack(id, clientId))
+  }
+
+  def shutdown {
+    system.shutdown
   }
 }
 

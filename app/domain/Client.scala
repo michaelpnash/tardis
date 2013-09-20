@@ -22,7 +22,9 @@ case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[Ev
   def withPublishes(eventType: String) = Client(id, nodes, subscribes, publishes + EventType(eventType))
 
   def sendEvent(container: EventContainer): EventContainer = {
-    selected ! container
+    if (!nodes.isEmpty) {
+      selected ! container
+    }
     container
   }
 }
