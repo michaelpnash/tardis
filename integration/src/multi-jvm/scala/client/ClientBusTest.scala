@@ -46,7 +46,7 @@ class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   "the tardis server" - {
     "should start up and run while the other tests complete" in {
       val module = new infrastructure.TardisModule(system)
-      Thread.sleep(65000)
+      Thread.sleep(65000) //TODO: Have a message that shuts down the actor
     }
   }
 
