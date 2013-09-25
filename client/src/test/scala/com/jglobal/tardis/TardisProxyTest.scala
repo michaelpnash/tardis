@@ -21,14 +21,14 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
   
   "the tardis proxy" - {
     "when a handler is registered, add the type to the list of subscribed types sent to the server" in {
-      val proxy = new TardisProxy("clientId", system.actorOf(TardisProxyActor.props(busStubSelection)))
+      val proxy = new TardisProxy("clientId", system.actorOf(TardisProxyActor.props(busStubSelection)), system)
       val eventType = "foo"
       proxy.registerHandler((e: EventContainer) => {}, eventType)
       awaitCond(received.size == 1)
     }
     "when publishing an event, sends the event to the server" in {
       val clientId = "clientId"
-      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)))
+      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)), system)
       val eventType = "foo"
       val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
       val assertAck = { ack: Ack => assert(ack.id === event.id) }
@@ -37,7 +37,7 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
     }
     "when receiving an ack from the server, sends it to the confirmation function" in {
       val clientId = "clientId"
-      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)))
+      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)), system)
       val eventType = "foo"
       val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
       var receivedAck: Option[Ack] = None
@@ -49,7 +49,7 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
     "when receiving an event from the server, sends it to the registered handler" in {
       val clientId = "clientId"
       val proxyActor = system.actorOf(TardisProxyActor.props(busStubSelection))
-      val proxy = new TardisProxy(clientId, proxyActor)
+      val proxy = new TardisProxy(clientId, proxyActor, system)
       val eventType = "foo"
       val event = EventContainer(UUID.randomUUID, eventType, "payload", clientId)
       var receivedEvent: Option[EventContainer] = None
@@ -61,7 +61,7 @@ class TardisProxyTest(system: ActorSystem) extends TestKit(system) with FreeSpec
     }
     "when given an ack, sends it to the server" in {
       val clientId = "clientId"
-      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)))
+      val proxy = new TardisProxy(clientId, system.actorOf(TardisProxyActor.props(busStubSelection)), system)
       val id = UUID.randomUUID
       proxy.ack(id)
       awaitCond(received.toList == List(Ack(id, clientId)))

@@ -54,7 +54,7 @@ object ApplicationBuild extends Build {
       "org.scalatest" %% "scalatest" % "2.0.M5b" % "test",
       "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
       "com.jolbox" % "bonecp" % "0.7.1.RELEASE",
-      "com.softwaremill.macwire" %% "core" % "0.1",
+      "com.softwaremill.macwire" %% "core" % "0.4",
       "joda-time" % "joda-time" % "2.1",
       "org.joda" % "joda-convert" % "1.2",
 
