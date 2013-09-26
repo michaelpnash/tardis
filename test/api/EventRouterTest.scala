@@ -32,7 +32,8 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         val id = "someId"
         val eventType = "someType"
         router ! Subscription(id, List(eventType))
-        expectMsg("Ok")
+        val stats = expectMsgClass(classOf[ClientStats])
+        assert(stats.clientId === id)
         assert(clientRepo.findOrCreate(id).subscribes === Set(EventType(eventType)))
       }
     }

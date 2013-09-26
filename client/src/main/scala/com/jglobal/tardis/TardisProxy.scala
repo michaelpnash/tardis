@@ -34,6 +34,14 @@ class TardisProxy(val clientId: String, proxyActor: ActorRef, system: ActorSyste
     }
     result
   }
+
+  def stats: ClientStats = {
+    implicit val timeout = Timeout(30 seconds)
+    val future: Future[ClientStats] =
+        ask(proxyActor, Subscription(clientId, List())).mapTo[ClientStats]
+    Await.result(future, 30 seconds).asInstanceOf[ClientStats]
+  }
+
  
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
