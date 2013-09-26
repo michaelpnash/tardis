@@ -71,25 +71,34 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       repo.recordAck(clientId)
       assert(repo.stats(clientId).clientId === clientId)
     }
-    "will increment the events sent count and last timestamp when an event is sent" in {
+    "will increment the events sent count and last timestamp when requested" in {
       val repo = new TransientClientRepository
-      val client = Client("baz", subscribes = Set(EventType("name")))
-
+      val clientId = "id1"
+      repo.recordEventSent(clientId)
+      assert(repo.stats(clientId).eventsSentTo.count === 1)
+      assert(repo.stats(clientId).eventsSentTo.last > 0)      
     }
     "will increment the acks received from count and last timestamp when requested" in {
       val repo = new TransientClientRepository
-      val client = Client("baz", subscribes = Set(EventType("name")))
+      val clientId = "id2"
+      repo.recordAck(clientId)
+      assert(repo.stats(clientId).acks.count === 1)
+      assert(repo.stats(clientId).acks.last > 0)
 
     }
     "will increment the events received from count and last timestamp when requested" in {
       val repo = new TransientClientRepository
-      val client = Client("baz", subscribes = Set(EventType("name")))
-
+      val clientId = "id3"
+      repo.recordEventReceived(clientId)
+      assert(repo.stats(clientId).eventsReceivedFrom.count === 1)
+      assert(repo.stats(clientId).eventsReceivedFrom.last > 0)
     }
     "will reset the counts when requested" in {
       val repo = new TransientClientRepository
-      val client = Client("baz", subscribes = Set(EventType("name")))
-
+      val clientId = "id4"
+      repo.recordEventSent(clientId)
+      assert(repo.stats(clientId).eventsSentTo.count === 1)
+      assert(repo.stats(clientId).eventsSentTo.last > 0)
     }
   }
 
