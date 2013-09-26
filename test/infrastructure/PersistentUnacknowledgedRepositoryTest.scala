@@ -58,14 +58,14 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
       val containerAndTimeStamp = EventContainerAndTimeStamp(event, System.currentTimeMillis - 40000)
       repo.store(clientAndEventId, containerAndTimeStamp)
       
-      // val eventRepo2 = new PersistentEventRepository(path)
-      // val clientRepo2 = new PersistentClientRepository(path, null)
-      // val repo2 = new PersistentUnacknowledgedRepository(path, clientRepo2, eventRepo2, null)
+      val eventRepo2 = new PersistentEventRepository(path)
+      val clientRepo2 = new PersistentClientRepository(path, null)
+      val repo2 = new PersistentUnacknowledgedRepository(path, clientRepo2, eventRepo2, null)
 
-      // val result = repo2.dueForRetry.toList
-      // assert(result.size === 1)
-      // assert(result.head._1.id === "clientId")
-      // assert(result.head._2 === event)      
+      val result = repo2.dueForRetry.toList
+      assert(result.size === 1)
+      assert(result.head._1.id === "clientId")
+      assert(result.head._2 === event)      
     }
   }
 }

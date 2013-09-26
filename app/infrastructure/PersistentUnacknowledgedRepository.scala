@@ -31,6 +31,7 @@ class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientReposit
           EventContainerAndTimeStamp(correspondingEvent, eventFile.lastModified))
       })
     })
+    println(s"After initial load, $unacknowledged")
   }
 
   override def remove(clientAndEventId: ClientIdAndEventId) {
@@ -46,7 +47,7 @@ class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientReposit
     if (!dir.exists) dir.mkdirs()
     val unackFile = new File(s"${dir.getPath}/${clientAndEventId.eventId}")
     new FileOutputStream(unackFile).close()
-    unackFile.setLastModified(System.currentTimeMillis)
+    unackFile.setLastModified(containerAndTimeStamp.timestamp)
     println("Updated last modified")
   }
 
