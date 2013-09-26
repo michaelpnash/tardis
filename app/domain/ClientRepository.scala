@@ -49,10 +49,10 @@ class TransientClientRepository extends ClientRepository {
     store(
       findOrCreate(subscription.clientId).withNode(ClientNode(ref, System.currentTimeMillis)).withSubscriptions(subscription.eventTypes))
 
-  def recordPublished(clientId: String, publishedType: String)(implicit system: ActorSystem): Client =
-    store(
-      findOrCreate(clientId).withPublishes(publishedType)
-    )
+  def recordPublished(clientId: String, publishedType: String)(implicit system: ActorSystem): Client = {
+    recordEventReceived(clientId)
+    store(findOrCreate(clientId).withPublishes(publishedType))
+  }
 
   def subscribersOf(eventType: EventType) = clients.values.filter(_.subscribes.contains(eventType))
 

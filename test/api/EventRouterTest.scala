@@ -33,6 +33,17 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
       }
     }
     "when receiving a published event" - {
+      "records stats for the client indicating another event has been received" in {
+        val clientRepo = new TransientClientRepository
+        val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
+        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
+        val eventRepo = new EventRepository
+        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
+        val event = EventContainer(UUID.randomUUID, "type", "payload", "someId")
+        router ! event
+        expectMsg(Ack(event.id, event.clientId))
+        assert(clientRepo.stats(event.clientId).eventsReceivedFrom.count === 1)
+      }
       "updates the appropriate client" in {
         val clientRepo = new TransientClientRepository
         val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
@@ -58,10 +69,6 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         router ! event
         expectMsg(Ack(event.id, event.clientId))
       }
-      "sends the event to all subscriber clients" in {
-      }
-    }
-    "when receiving an ack" - {
     }
   }
 
