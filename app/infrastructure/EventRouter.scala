@@ -39,10 +39,7 @@ class EventRouterActor(subscriberActor: ActorRef,
     }
     case ack: Ack => unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
 
-    case Identify => {
-      println(s"Got request for identity from $sender")
-      sender ! ActorIdentity("tardis", Some(self))
-    }
+    case Identify => sender ! ActorIdentity("tardis", Some(self))
 
     case Retry => {
       unacknowledgedRepo.dueForRetry.foreach(due => due._1.sendEvent(due._2))
@@ -65,8 +62,7 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
   
   def receive = {
    case subscription: Subscription => {
-     println(s"Got a subscription from a client: $subscription")
-     clientRepository.recordSubscription(sender, subscription)(context.system)
+          clientRepository.recordSubscription(sender, subscription)(context.system)
      sender ! "Ok" //TODO: Don't use a string here!
    }
 

@@ -31,7 +31,6 @@ class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientReposit
           EventContainerAndTimeStamp(correspondingEvent, eventFile.lastModified))
       })
     })
-    println(s"After initial load, $unacknowledged")
   }
 
   override def remove(clientAndEventId: ClientIdAndEventId) {
@@ -41,14 +40,12 @@ class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientReposit
   }
 
   override def store(clientAndEventId: ClientIdAndEventId, containerAndTimeStamp: EventContainerAndTimeStamp) {
-    println("Writing un-ack entry")
     super.store(clientAndEventId, containerAndTimeStamp)
     val dir = new File(s"${unackDir.getPath}/${clientAndEventId.clientId}")
     if (!dir.exists) dir.mkdirs()
     val unackFile = new File(s"${dir.getPath}/${clientAndEventId.eventId}")
     new FileOutputStream(unackFile).close()
     unackFile.setLastModified(containerAndTimeStamp.timestamp)
-    println("Updated last modified")
   }
 
 }
