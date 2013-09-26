@@ -5,12 +5,11 @@ import domain.{ClientRepository, TransientClientRepository, Client}
 import akka.actor._
 
 import scala.io.Source._
-import java.io.File
-import java.io.PrintWriter
+import java.io.{File, PrintWriter}
 
 class PersistentClientRepository(path: String, system: ActorSystem) extends TransientClientRepository {
   require(!path.endsWith("/"), s"Path must not end with a /, but $path does")
-  val clientDir = new File(path + "/clients/")
+  val clientDir = new File(s"$path/clients/")
   if (!clientDir.exists) clientDir.mkdirs()
   assert(clientDir.exists && clientDir.isDirectory, s"Directory ${clientDir.getPath} does not exist or is not a directory!")
   assert(clientDir.canRead && clientDir.canWrite, s"Directory ${clientDir.getPath} cannot be read from and written to!")
