@@ -5,10 +5,19 @@ import com.jglobal.tardis._
 import org.scalatest.FreeSpec
 
 import java.util.UUID
+import java.io.File
 
 class PersistentEventRepositoryTest extends FreeSpec {
+  val testDir = "/tmp"
   "the persistent event repository" - {
     "can store and retrieve an event container across instantiations" in {
+      val target = new File(testDir + "/test/")
+      target.mkdirs()
+      target.delete()
+      val repo = new PersistentEventRepository(target.getPath)
+      val container2 = EventContainer(UUID.randomUUID, "type", "payload", "clientId")
+      val container1 = EventContainer(UUID.randomUUID, "type", "payload", "clientId")
+      repo.store(container1)
     }
   }
 }

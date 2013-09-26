@@ -22,6 +22,10 @@ class PersistentClientRepositoryTest extends FreeSpec {
       val client2 = Client("id2", subscribes = Set(EventType("three"), EventType("two")), publishes = Set(EventType("four"), EventType("three")))(null)
       repo.store(client1)
       repo.store(client2)
+
+      val repo2 = new PersistentClientRepository(target.getPath, null)
+      assert(repo2.findOrCreate(client1.id)(null) === client1)
+      assert(repo2.findOrCreate(client2.id)(null) === client2)
     }
   }
 }
