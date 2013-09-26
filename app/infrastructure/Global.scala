@@ -28,7 +28,7 @@ object TardisModule {
   
   lazy val application = wire[Application]
   lazy val eventRepo = wire[EventRepository]
-  lazy val clientRepository: ClientRepository = new PersistentClientRepository(config.getString("data.dir"), system)
+  lazy val clientRepository: ClientRepository = new PersistentClientRepository(config.getString("tardis.data.dir"), system)
   lazy val unackRepository: UnacknowledgedRepository = wire[UnacknowledgedRepository]
 
   def start(playSystem: ActorSystem) {
