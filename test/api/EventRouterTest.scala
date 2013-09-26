@@ -1,6 +1,6 @@
 package api
 
-import domain.{ClientRepository, TransientClientRepository, EventType, EventRepository}
+import domain._
 import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 
 import akka.actor._
@@ -45,11 +45,7 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         assert(clientRepo.stats(event.clientId).eventsReceivedFrom.count === 1)
       }
       "updates the appropriate client" in {
-        val clientRepo = new TransientClientRepository
-        val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
-        val eventRepo = new EventRepository
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
+        val (clientRepo, _, _, _, router) = transientRouter
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
@@ -58,11 +54,7 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
         assert(clientRepo.findOrCreate(id).publishes === Set(EventType(eventType)))
       }
       "sends an ack back to the sender of the event with the events id" in {
-        val clientRepo = new TransientClientRepository
-        val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-        val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
-        val eventRepo = new EventRepository
-        val router = TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo))
+        val (_, _, _, _, router) = transientRouter
         val id = "someId"
         val eventType = "someType"
         val event = EventContainer(UUID.randomUUID, eventType, "payload", id)
@@ -73,8 +65,19 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
 
     "when receiving an ack from a client" - {
       "removes the event from the list of unacknowledged events from that client" in {
+        val (_, _, unackRepo, _, router) = transientRouter
+        val id = UUID.randomUUID
+        val clientId = "id3"
+        unackRepo.store(ClientIdAndEventId(clientId, id), EventContainerAndTimeStamp(EventContainer(id, "type", "payload", clientId), 0L))
+        router ! Ack(id, clientId)
+        assert(unackRepo.list === List())
       }
       "updates the client stats to indicate another ack has been received" in {
+        val (clientRepo, _, _, _, router) = transientRouter
+        val id = UUID.randomUUID
+        val clientId = "id3"
+        router ! Ack(id, clientId)
+        assert(clientRepo.stats(clientId).acks.count === 1)
       }
     }
   }

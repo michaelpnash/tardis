@@ -47,7 +47,6 @@ class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientReposit
     new FileOutputStream(unackFile).close()
     unackFile.setLastModified(containerAndTimeStamp.timestamp)
   }
-
 }
 
 

@@ -4,7 +4,6 @@ import com.jglobal.tardis._
 import domain._
 import akka.actor._
 import java.util.UUID
-import scala.collection.mutable.SynchronizedMap
 import scala.concurrent.duration._
 
 case object Retry
@@ -14,9 +13,6 @@ object EventRouterActor {
     unackRepo: UnacknowledgedRepository, eventRepo: EventRepository): Props =
     Props(classOf[EventRouterActor], subscriberActor, clientRepo, unackRepo, eventRepo)
 }
-
-case class ClientIdAndEventId(clientId: String, eventId: UUID)
-case class EventContainerAndTimeStamp(container: EventContainer, timestamp: Long)
 
 class EventRouterActor(subscriberActor: ActorRef,
   clientRepo: ClientRepository,
@@ -37,7 +33,10 @@ class EventRouterActor(subscriberActor: ActorRef,
       })
       sender ! Ack(event.id, event.clientId)
     }
-    case ack: Ack => unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
+    case ack: Ack => {
+      clientRepo.recordAck(ack.clientId)
+      unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
+    }
 
     case Identify => sender ! ActorIdentity("tardis", Some(self))
 
@@ -73,21 +72,4 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
  }
 }
 
-class UnacknowledgedRepository(clientRepo: ClientRepository, system: ActorSystem) {
-  val unacknowledged = new collection.mutable.HashMap[ClientIdAndEventId, EventContainerAndTimeStamp] with SynchronizedMap[ClientIdAndEventId, EventContainerAndTimeStamp]
-
-  def store(clientAndEventId: ClientIdAndEventId, containerAndTimeStamp: EventContainerAndTimeStamp) {
-    unacknowledged.put(clientAndEventId, containerAndTimeStamp)
-  }
-  def dueForRetry: Iterable[(Client, EventContainer)] = {
-    val minTime = System.currentTimeMillis - 30000
-    unacknowledged.filter(_._2.timestamp < minTime).map(pair => {
-      unacknowledged.remove(pair._1)
-      (clientRepo.findOrCreate(pair._1.clientId)(system), pair._2.container)
-    })
-  }
-  def remove(clientAndEventId: ClientIdAndEventId) {
-    unacknowledged.remove(clientAndEventId)
-  }
-}
 
