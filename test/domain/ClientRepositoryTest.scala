@@ -65,6 +65,32 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val client3 = repo.store(Client("id3", subscribes = Set(EventType(type2))))
       assert(repo.subscribersOf(EventType(type1)) === List(client1, client2))
     }
+    "can produce a stats object for any client that has stats recorded for it" in {
+      val repo = new TransientClientRepository
+      val clientId = "clientId"
+      repo.recordAck(clientId)
+      assert(repo.stats(clientId).clientId === clientId)
+    }
+    "will increment the events sent count and last timestamp when an event is sent" in {
+      val repo = new TransientClientRepository
+      val client = Client("baz", subscribes = Set(EventType("name")))
+
+    }
+    "will increment the acks received from count and last timestamp when requested" in {
+      val repo = new TransientClientRepository
+      val client = Client("baz", subscribes = Set(EventType("name")))
+
+    }
+    "will increment the events received from count and last timestamp when requested" in {
+      val repo = new TransientClientRepository
+      val client = Client("baz", subscribes = Set(EventType("name")))
+
+    }
+    "will reset the counts when requested" in {
+      val repo = new TransientClientRepository
+      val client = Client("baz", subscribes = Set(EventType("name")))
+
+    }
   }
 
  override def afterAll() {

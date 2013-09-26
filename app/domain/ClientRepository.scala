@@ -20,10 +20,19 @@ trait ClientRepository {
   def subscribersOf(eventType: EventType): Iterable[Client]
 
   def flush: Unit
+
+  def stats(clientId: String): ClientStats
+
+  def recordAck(clientId: String): Unit
+
+  def recordEventReceived(clientId: String): Unit
+
+  def recordEventSent(clientId: String): Unit
 }
 
 class TransientClientRepository extends ClientRepository {
   protected val clients = new collection.mutable.HashMap[String, Client] with SynchronizedMap[String, Client]
+  protected val clientStats = new collection.mutable.HashMap[String, ClientStats] with SynchronizedMap[String, ClientStats]
 
   def list = clients.values
   
@@ -49,6 +58,20 @@ class TransientClientRepository extends ClientRepository {
 
   def flush {
     clients.map(p => clients.put(p._1, p._2.withoutStaleNodes))
+  }
+
+  def stats(clientId: String) = clientStats.get(clientId).getOrElse(ClientStats(clientId))
+
+  def recordAck(clientId: String) {
+    clientStats.put(clientId, stats(clientId).withAck)
+  }
+
+  def recordEventReceived(clientId: String) {
+    clientStats.put(clientId, stats(clientId).withReceivedEvent)
+  }
+
+  def recordEventSent(clientId: String) {
+    clientStats.put(clientId, stats(clientId).withSentEvent)
   }
 }
 

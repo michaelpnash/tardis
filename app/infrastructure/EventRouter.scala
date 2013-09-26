@@ -62,7 +62,7 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
   
   def receive = {
    case subscription: Subscription => {
-          clientRepository.recordSubscription(sender, subscription)(context.system)
+     clientRepository.recordSubscription(sender, subscription)(context.system)
      sender ! "Ok" //TODO: Don't use a string here!
    }
 
