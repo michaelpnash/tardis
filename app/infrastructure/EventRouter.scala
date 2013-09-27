@@ -33,6 +33,10 @@ class EventRouterActor(subscriberActor: ActorRef,
       })
       sender ! Ack(event.id, event.clientId)
     }
+    case stats: ClientStats => {
+      println(s"EventRouter Saw request for stats for client ${stats.clientId}")
+      subscriberActor forward stats
+    }
     case ack: Ack => {
       clientRepo.recordAck(ack.clientId)
       unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
@@ -60,9 +64,13 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
   }
   
   def receive = {
-   case subscription: Subscription => {
+    case stats: ClientStats => {
+      println(s"Sending ${clientRepository.stats(stats.clientId)} to ${sender.path.address}")
+      sender ! clientRepository.stats(stats.clientId)
+    }
+    case subscription: Subscription => {
      clientRepository.recordSubscription(sender, subscription)(context.system)
-     sender ! clientRepository.stats(subscription.clientId)
+     sender ! "Ok"
    }
 
    case Flush => {

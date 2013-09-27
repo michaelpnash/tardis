@@ -25,6 +25,7 @@ This is an interactive client app to the TARDIS event router. You can type the f
       case "publish" :: eventType :: payload :: Nil => println(publish(eventType, payload))
       case "subscribe" :: eventType :: Nil => println(subscribe(eventType))
       case "repeat" :: count :: Nil => println(repeat(count))
+      case "stats" :: Nil => println(stats)
       case "exit" :: tail => System.exit(0)
       case _ => println("Unknown command. Enter ? for help")
     }
@@ -34,6 +35,10 @@ This is an interactive client app to the TARDIS event router. You can type the f
   def connect(address: String) = {
     proxy = new TardisProxy("commandline", address)
     "Connected"
+  }
+
+  def stats = {
+    proxy.stats("commandline")
   }
 
   def subscribe(eventType: String) = {

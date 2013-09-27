@@ -35,14 +35,12 @@ class TardisProxy(val clientId: String, proxyActor: ActorRef, system: ActorSyste
     result
   }
 
-  def stats: ClientStats = {
+  def stats(id: String = clientId): ClientStats = {
     implicit val timeout = Timeout(30 seconds)
-    val future: Future[ClientStats] =
-        ask(proxyActor, Subscription(clientId, List())).mapTo[ClientStats]
+    val future: Future[ClientStats] = ask(proxyActor, Stats(id)).mapTo[ClientStats]
     Await.result(future, 30 seconds).asInstanceOf[ClientStats]
   }
 
- 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
     proxyActor ! SendEvent(evt, confirm)
   }
@@ -64,6 +62,7 @@ object TardisProxyActor {
   def props(bus: ActorSelection): Props = Props(classOf[TardisProxyActor], bus)
 }
 
+case class Stats(clientId: String)
 case object Ping
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 case class SendAck(ack: Ack)
@@ -73,19 +72,29 @@ class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
   val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
   val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
   
+  implicit val timeout = Timeout(30 seconds)
+  
   def receive = {
     case SendEvent(container, confirm) => {
       pending.put(container.id, confirm)
       bus ! container
     }
 
+    case Stats(clientId) => {
+      val future: Future[ClientStats] = ask(bus, ClientStats(clientId)).mapTo[ClientStats]
+      sender ! Await.result(future, 30 seconds).asInstanceOf[ClientStats]
+    }
+
     case SendAck(ack) => bus ! ack
 
     case Ping => {
-        implicit val timeout = Timeout(30 seconds)
+      try {
         val future: Future[ActorIdentity] = ask(bus, Identify).mapTo[ActorIdentity]
         val busIdentity = Await.result(future, 30 seconds).asInstanceOf[ActorIdentity]
         sender ! busIdentity.ref.isDefined
+      } catch {
+        case _: Throwable => sender ! false
+      }
     }
 
     case container: EventContainer => handlers.get(container.eventType).map(f => f(container))

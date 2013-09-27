@@ -29,7 +29,7 @@ class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
       awaitAssert(() => proxy.ping)
       var ackReceived: Option[Ack] = None
       val receiver = { ack: Ack => ackReceived = Some(ack) }
-      val event = EventContainer(UUID.randomUUID, "type", "payload", "clientid")
+      val event = EventContainer(UUID.randomUUID, "type1", "payload", "clientid")
       proxy.publish(event, receiver)
       awaitAssert(() => ackReceived.isDefined, msg = "Never got an ack from publish")
       assert(ackReceived.get === Ack(event.id, event.clientId))
@@ -45,8 +45,10 @@ class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
   val system = ActorSystem("application")
   "the tardis server" - {
     "should start up and run while the other tests complete" in {
+      println("Server starts up")
       val module = infrastructure.TardisModule.start(system)
-      Thread.sleep(65000) //TODO: Have a message that shuts down the actor
+      Thread.sleep(75000) //TODO: Have a message that shuts down the actor
+      println("Server shuts down")
     }
   }
 
@@ -62,12 +64,14 @@ class SpecMultiJvmNode3 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
       awaitAssert(() => proxy.ping)
       var evtReceived: Option[EventContainer] = None
       val handler = { evt: EventContainer => evtReceived = Some(evt) }
-      val event = EventContainer(UUID.randomUUID, "type", "payload", "clientid")
-      proxy.registerHandler(handler, "type")
-      Thread.sleep(5000)
+      val event = EventContainer(UUID.randomUUID, "type2", "payload", "clientid")
+      proxy.registerHandler(handler, "type2")
+      Thread.sleep(2000)
       proxy.publish(event, { ack: Ack => {} })
       awaitAssert(() => evtReceived.isDefined)
       assert(evtReceived.get === event)
+      println("Stats:" + proxy.stats("client1"))
+      Thread.sleep(20000)
     }
   }
   override def afterAll() { if (proxy != null) proxy.shutdown }
