@@ -22,14 +22,15 @@ trait AwaitAssert {
 
 /* Port 8888 */
 class SpecMultiJvmNode1 extends FreeSpec with BeforeAndAfterAll with AwaitAssert {
+  val clientId = "client1"
   var proxy: TardisProxy = _
   "the tardis client" - {
     "should send an event and receive the appropriate ack" in {
-      proxy = new TardisProxy("client1")
+      proxy = new TardisProxy(clientId)
       awaitAssert(() => proxy.ping)
       var ackReceived: Option[Ack] = None
       val receiver = { ack: Ack => ackReceived = Some(ack) }
-      val event = EventContainer(UUID.randomUUID, "type1", "payload", "clientid")
+      val event = EventContainer(UUID.randomUUID, "type1", "payload", clientId)
       proxy.publish(event, receiver)
       awaitAssert(() => ackReceived.isDefined, msg = "Never got an ack from publish")
       assert(ackReceived.get === Ack(event.id, event.clientId))
@@ -57,21 +58,22 @@ class SpecMultiJvmNode2 extends FreeSpec with BeforeAndAfterAll with AwaitAssert
 
 /* Port 0, e.g. find a random free port */
 class SpecMultiJvmNode3 extends FreeSpec with BeforeAndAfterAll with AwaitAssert {
+  val clientId = "clientNode3"
   var proxy: TardisProxy = _
   "the tardis proxy" - {
     "when sent an event that I subscribe to, should return that event to the proper handler" in {
-      proxy = new TardisProxy("client1")
+      proxy = new TardisProxy(clientId)
       awaitAssert(() => proxy.ping)
       var evtReceived: Option[EventContainer] = None
       val handler = { evt: EventContainer => evtReceived = Some(evt) }
-      val event = EventContainer(UUID.randomUUID, "type2", "payload", "clientid")
+      val event = EventContainer(UUID.randomUUID, "type2", "payload", clientId)
       proxy.registerHandler(handler, "type2")
       Thread.sleep(2000)
-      proxy.publish(event, { ack: Ack => {} })
-      awaitAssert(() => evtReceived.isDefined)
-      assert(evtReceived.get === event)
-      println("Stats:" + proxy.stats("client1"))
-      Thread.sleep(20000)
+      proxy.publish(event, { ack: Ack => {} }) // discard the ack WE get back
+      awaitAssert(() => evtReceived.isDefined) // wait to receive the event
+      assert(evtReceived.get === event) // make sure it's the one we sent
+      proxy.ack(evtReceived.get.id)
+      awaitAssert(() => proxy.stats(clientId).acks.count > 0) // wait for the bus to say we've acked receipt
     }
   }
   override def afterAll() { if (proxy != null) proxy.shutdown }

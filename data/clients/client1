@@ -1,1 +1,1 @@
-{"id":"client1","subscribes":["type","type2"],"publishes":[]}
+{"id":"client1","subscribes":["type","type2"],"publishes":["type1"]}

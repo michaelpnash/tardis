@@ -42,8 +42,15 @@ class TardisProxy(val clientId: String, proxyActor: ActorRef, system: ActorSyste
   }
 
   def publish(evt: EventContainer, confirm: (Ack) => Unit) {
+    require(evt.clientId == clientId)
     proxyActor ! SendEvent(evt, confirm)
   }
+
+  def publish(eventType: String, payload: String, confirm: (Ack) => Unit) {
+    publish(EventContainer(UUID.randomUUID, eventType, payload, clientId), confirm)
+  }
+
+  //TODO: publishAndWait
   
   def registerHandler(handler: (EventContainer) => Unit, eventType: String) {
     proxyActor ! HandlerRegistered(handler, Subscription(clientId, List(eventType)))
