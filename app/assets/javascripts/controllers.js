@@ -17,12 +17,12 @@ angular.module('sseChat.controllers', ['sseChat.services']).
             $scope.listen();
         };
 
-                $scope.myData = [{name: "Moroni", age: 50},
-                     {name: "Tiancum", age: 43},
-                     {name: "Jacob", age: 27},
-                     {name: "Nephi", age: 29},
-                     {name: "Enos", age: 34}];
-        $scope.gridOptions = { data : 'myData' };
+        // $scope.myData = [{name: "Moroni", age: 50},
+        //              {name: "Tiancum", age: 43},
+        //              {name: "Jacob", age: 27},
+        //              {name: "Nephi", age: 29},
+        //              {name: "Enos", age: 34}];
+        // $scope.gridOptions = { data : 'myData' };
         
         /** posting chat text to server */
         $scope.submitMsg = function () {
@@ -34,6 +34,8 @@ angular.module('sseChat.controllers', ['sseChat.services']).
         /** handle incoming messages: add to messages array */
         $scope.addMsg = function (msg) { 
             $scope.$apply(function () { $scope.msgs.push(JSON.parse(msg.data)); });
+            // $scope.myData = [{ name: msg.data, age: 20}];
+            // $scope.gridOptions = { data: 'myData' };
         };
 
         /** start listening on messages from selected room */
