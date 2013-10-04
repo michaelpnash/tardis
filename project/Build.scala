@@ -1,5 +1,4 @@
 import sbt._
-import sbt._
 import play.Project._
 import Keys._
 import com.typesafe.sbt.SbtMultiJvm
@@ -57,7 +56,9 @@ object ApplicationBuild extends Build {
       "com.softwaremill.macwire" %% "core" % "0.4",
       "joda-time" % "joda-time" % "2.1",
       "org.joda" % "joda-convert" % "1.2",
-
+      "org.webjars" %% "webjars-play" % "2.1.0-2",
+      "org.webjars" % "angularjs" % "1.1.5-1",
+      "org.webjars" % "bootstrap" % "2.3.2",
       // ---- application dependencies ----
       "com.typesafe.akka"  %% "akka-remote" % akkaVersion,
       

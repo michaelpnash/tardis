@@ -1,5 +1,6 @@
 package infrastructure
 
+import akka.ChatActors
 import play.api.GlobalSettings
 import javax.sql.DataSource
 import akka.actor.ActorSystem
@@ -17,7 +18,13 @@ object Global extends GlobalSettings with Macwire {
 
   override def onStart(app: play.api.Application) {
     TardisModule.start(play.libs.Akka.system)
+    ChatActors.start(play.libs.Akka.system)
   }
+  
+  override def onStop(application: play.api.Application) {
+    play.libs.Akka.system.shutdown()
+  }
+
 }
 
 object TardisModule {
