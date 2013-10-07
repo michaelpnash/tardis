@@ -17,7 +17,7 @@ angular.module('sseChat.controllers', ['sseChat.services']).
             $scope.listen();
         };
 
-        $scope.status = [{foo: "bar", bar: "baz"}];
+        $scope.status = [];
         
         // $scope.myData = [{name: "Moroni", age: 50},
         //              {name: "Tiancum", age: 43},
@@ -36,10 +36,9 @@ angular.module('sseChat.controllers', ['sseChat.services']).
         /** handle incoming messages: add to messages array */
         $scope.addMsg = function (msg) { 
             $scope.$apply(function () { $scope.msgs.push(JSON.parse(msg.data)); });
-            $scope.status = [{other: "changed"}];
+            $scope.status = JSON.parse(msg.data);
+            $scope.items = [{client: "one", two: "two"}, {client:"oneone", two:"twotwo"}];
             $scope.$apply();
-            // $scope.myData = [{ name: msg.data, age: 20}];
-            // $scope.gridOptions = { data: 'myData' };
         };
 
         /** start listening on messages from selected room */

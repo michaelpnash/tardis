@@ -38,9 +38,23 @@
                     <input type="button" class="btn btn-primary" id="saySomething" value="Submit" ng-click="submitMsg()" />
                 </form>
             </div>
-            <div id="status">{{ status }}
+            <div id="status">
+              {{ status.text }}
+              {{ items }}
+              <table class="table">
+                <tr>
+                  <th>Client</th>
+                  <th>Publishes</th>
+                  <th>Subscribes</th>
+                  <th>Sent To</th>
+                  <th>Received From</th>
+                  <th>Acks From</th>
+                </tr>
+                <tbody ng-repeat="item in items">
+                  <tr><td>Header {{ item }}</td></tr>
+                </tbody>
+              </table>
             </div>
         </div>
-
     </body>
 </html>
