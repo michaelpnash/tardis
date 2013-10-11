@@ -1,5 +1,7 @@
 package controllers
 
+import domain.ClientRepository
+import infrastructure.Global
 import play.api.mvc._
 import play.api.libs.json.JsValue
 import play.api.libs.iteratee.{Concurrent, Enumeratee}
@@ -26,6 +28,9 @@ object ChatApplication extends Controller {
   /** Controller action serving activity based on room */
   def chatFeed(room: String) = Action { req =>
     println(req.remoteAddress + " - SSE connected")
+   // val repo = Global.instanceLookup.lookupSingleOrThrow(classOf[ClientRepository])
+    //val doctor = play.libs.Akka.system.actorSelection("/user/ChatterSupervisor/doctor")
+    //repo.list.foreach(client => doctor ! repo.stats(client.id))
     Ok.stream(chatOut
       &> filter(room)
       &> Concurrent.buffer(50)

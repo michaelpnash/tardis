@@ -29,19 +29,20 @@ angular.module('sseChat.controllers', ['sseChat.services']).
 
         /** handle incoming messages: add to messages array */
         $scope.addMsg = function (msg) { 
-            //$scope.$apply(function () { $scope.msgs.push(JSON.parse(msg.data)); });
-            //$scope.status = JSON.parse(msg.data);
-            //$scope.items.push(JSON.parse(msg.data));
             $scope.$apply(function() {
                 $scope.items.push(JSON.parse(msg.data));
                 var newStat = JSON.parse(msg.data);
+                var found = 0;
                 for (var i in $scope.items) {
                   if ($scope.items[i].id == newStat.id) {
                         $scope.items[i] = newStat;
-                    }
-                 }
+                        found = 1;
+                  }
+                }
+                if (found == 0) {
+                    $scope.items.push(newStat);
+                }
             });
-            //$scope.$apply();
         };
 
         /** start listening on messages from selected room */
