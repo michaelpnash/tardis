@@ -28,6 +28,7 @@ class EventRouterActor(subscriberActor: ActorRef,
   def receive = {
     case subscription: Subscription => subscriberActor forward subscription 
     case event: EventContainer => {
+      println(s"Sending event to doctor at ${doctor}")
       doctor ! s"I got an event $event"
       clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
