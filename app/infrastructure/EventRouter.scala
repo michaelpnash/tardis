@@ -34,6 +34,7 @@ class EventRouterActor(subscriberActor: ActorRef,
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
+        doctor ! clientRepo.stats(client.id)
       })
       sender ! Ack(event.id, event.clientId)
     }

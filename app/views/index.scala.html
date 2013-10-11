@@ -51,7 +51,10 @@
                   <th>Acks From</th>
                 </tr>
                 <tbody ng-repeat="item in items">
-                  <tr><td>Header {{ item }}</td></tr>
+                  <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>

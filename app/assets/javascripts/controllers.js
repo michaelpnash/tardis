@@ -3,6 +3,7 @@
 /** Controllers */
 angular.module('sseChat.controllers', ['sseChat.services']).
     controller('ChatCtrl', function ($scope, $http, chatModel) {
+        $scope.items = [];
         $scope.rooms = chatModel.getRooms();
         $scope.msgs = [];
         $scope.inputText = "";
@@ -18,14 +19,7 @@ angular.module('sseChat.controllers', ['sseChat.services']).
         };
 
         $scope.status = [];
-        
-        // $scope.myData = [{name: "Moroni", age: 50},
-        //              {name: "Tiancum", age: 43},
-        //              {name: "Jacob", age: 27},
-        //              {name: "Nephi", age: 29},
-        //              {name: "Enos", age: 34}];
-        // $scope.gridOptions = { data : 'myData' };
-        
+                
         /** posting chat text to server */
         $scope.submitMsg = function () {
             $http.post("/chat", { text: $scope.inputText, user: $scope.user,
@@ -35,10 +29,19 @@ angular.module('sseChat.controllers', ['sseChat.services']).
 
         /** handle incoming messages: add to messages array */
         $scope.addMsg = function (msg) { 
-            $scope.$apply(function () { $scope.msgs.push(JSON.parse(msg.data)); });
-            $scope.status = JSON.parse(msg.data);
-            $scope.items = [{client: "one", two: "two"}, {client:"oneone", two:"twotwo"}];
-            $scope.$apply();
+            //$scope.$apply(function () { $scope.msgs.push(JSON.parse(msg.data)); });
+            //$scope.status = JSON.parse(msg.data);
+            //$scope.items.push(JSON.parse(msg.data));
+            $scope.$apply(function() {
+                $scope.items.push(JSON.parse(msg.data));
+                var newStat = JSON.parse(msg.data);
+                for (var i in $scope.items) {
+                  if ($scope.items[i].id == newStat.id) {
+                        $scope.items[i] = newStat;
+                    }
+                 }
+            });
+            //$scope.$apply();
         };
 
         /** start listening on messages from selected room */

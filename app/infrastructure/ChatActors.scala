@@ -1,6 +1,8 @@
 package akka
 
 import akka.actor._
+import com.jglobal.tardis.ClientStats
+import domain.Client
 
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -45,6 +47,16 @@ class Chatter(name: String, quotes: Seq[String]) extends Actor {
       println(s"Got a string in chatter $str")
       val now: String = DateTime.now.toString
       val msg = Json.obj("room" -> "room1", "text" -> str, "user" -> name, "time" -> now)
+      ChatApplication.chatChannel.push(msg)
+    }
+    case client: Client => {
+      val now: String = DateTime.now.toString
+      val msg = Json.obj("room" -> "room1", "text" -> client.toString, "user" -> "doctor", "time" -> now)
+      ChatApplication.chatChannel.push(msg)
+    }
+    case clientStats: ClientStats => {
+      val now: String = DateTime.now.toString
+      val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now)
       ChatApplication.chatChannel.push(msg)
     }
     case ChatActors.Talk  => {
