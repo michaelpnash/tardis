@@ -9,12 +9,12 @@ import scala.concurrent.duration._
 case object Retry
 
 object EventRouterActor {
-  def props(subscriberActor: ActorRef, clientRepo: ClientRepository,
+  def props(subscriptionService: SubscriptionService, clientRepo: ClientRepository,
     unackRepo: UnacknowledgedRepository, eventRepo: EventRepository): Props =
-    Props(classOf[EventRouterActor], subscriberActor, clientRepo, unackRepo, eventRepo)
+    Props(classOf[EventRouterActor], subscriptionService, clientRepo, unackRepo, eventRepo)
 }
 
-class EventRouterActor(subscriberActor: ActorRef,
+class EventRouterActor(subscriptionService: SubscriptionService,
   clientRepo: ClientRepository,
   unacknowledgedRepo: UnacknowledgedRepository,
   eventRepo: EventRepository) extends Actor with ActorLogging {
@@ -26,7 +26,7 @@ class EventRouterActor(subscriberActor: ActorRef,
   }
 
   def receive = {
-    case subscription: Subscription => subscriberActor forward subscription 
+    case subscription: Subscription => subscriptionService.subscribe(subscription, sender)
     case event: EventContainer => {
       println(s"Sending event to doctor at ${doctor}")
       doctor ! s"I got an event $event"
@@ -40,7 +40,7 @@ class EventRouterActor(subscriberActor: ActorRef,
     }
     case stats: ClientStats => {
       println(s"EventRouter Saw request for stats for client ${stats.clientId}")
-      subscriberActor forward stats
+      subscriptionService.stats(stats, sender)
     }
     case ack: Ack => {
       doctor ! s"I got an ack: $ack"
@@ -59,10 +59,18 @@ class EventRouterActor(subscriberActor: ActorRef,
 
 case object Flush
 
+case class StatsAndSender(stats: ClientStats, sender: ActorRef)
+case class SubscriptionAndSender(subscription: Subscription, sender: ActorRef)
+
 class SubscriptionService(clientRepository: ClientRepository) {
   var actor: ActorRef = _
+
+  def subscribe(subscription: Subscription, sender: ActorRef) = actor ! SubscriptionAndSender(subscription, sender)
+
+  def stats(stats: ClientStats, sender: ActorRef) = actor ! StatsAndSender(stats, sender)
   
   def start(system: ActorSystem) {
+    println("Starting subscription actor")
     actor = system.actorOf(SubscriptionActor.props(clientRepository), "subscription")
   }
 }
@@ -78,13 +86,13 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
   }
   
   def receive = {
-    case stats: ClientStats => {
-      println(s"Sending ${clientRepository.stats(stats.clientId)} to ${sender.path.address}")
-      sender ! clientRepository.stats(stats.clientId)
+    case statsAndSender: StatsAndSender => {
+      println(s"Sending ${clientRepository.stats(statsAndSender.stats.clientId)} to ${statsAndSender.sender.path.address}")
+      statsAndSender.sender ! clientRepository.stats(statsAndSender.stats.clientId)
     }
-    case subscription: Subscription => {
-     clientRepository.recordSubscription(sender, subscription)(context.system)
-     sender ! "Ok"
+    case subscriptionAndSender: SubscriptionAndSender => {
+     clientRepository.recordSubscription(subscriptionAndSender.sender, subscriptionAndSender.subscription)(context.system)
+     subscriptionAndSender.sender ! "Ok"
    }
 
    case Flush => {
