@@ -23,7 +23,7 @@ object SerializableClient {
   )(ClientDAO.apply _)
 
   def toStr(original: Client) = Json.toJson(ClientDAO(original.id, original.subscribes.map(_.name), original.publishes.map(_.name))).toString
-  def fromStr(str: String)(implicit system: ActorSystem) = {
+  def fromStr(str: String) = {
     val dao = Json.parse(str).as[ClientDAO]
     Client(dao.id, subscribes = dao.subscribes.map(t => EventType(t)), publishes = dao.publishes.map(t => EventType(t)))
   }

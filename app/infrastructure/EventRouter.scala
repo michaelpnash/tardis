@@ -59,6 +59,14 @@ class EventRouterActor(subscriberActor: ActorRef,
 
 case object Flush
 
+class SubscriptionService(clientRepository: ClientRepository) {
+  var actor: ActorRef = _
+  
+  def start(system: ActorSystem) {
+    actor = system.actorOf(SubscriptionActor.props(clientRepository), "subscription")
+  }
+}
+
 object SubscriptionActor {
   def props(clientRepository: ClientRepository): Props = Props(classOf[SubscriptionActor], clientRepository)
 }

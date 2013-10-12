@@ -23,20 +23,23 @@ object Global extends GlobalSettings with Macwire {
   
   override def onStop(application: play.api.Application) {
     play.libs.Akka.system.shutdown()
-     }
+  }
 }
 
 object TardisModule {
   import com.softwaremill.macwire.MacwireMacros._
 
+  lazy val config = ConfigFactory.load()
+  lazy val clientDir = ClientDirectory(config.getString("tardis.data.dir"))
+  lazy val clientRepository = wire[PersistentClientRepository]
+  lazy val subscriptionService = wire[SubscriptionService]
+  lazy val application = wire[Application]
+  lazy val eventRepo = wire[EventRepository]
+  lazy val unackRepository = wire[UnacknowledgedRepository]
+  
   def start(system: ActorSystem) {
-    val config = ConfigFactory.load()
-
-    lazy val clientRepository: ClientRepository = new PersistentClientRepository(config.getString("tardis.data.dir"), system)
-    lazy val application = new Application(clientRepository)
-    lazy val eventRepo = new EventRepository
-    lazy val unackRepository: UnacknowledgedRepository = new UnacknowledgedRepository(clientRepository, system)
     val subscriptionActor = system.actorOf(SubscriptionActor.props(clientRepository), name = "subscriber")
     val eventRouterActor = system.actorOf(EventRouterActor.props(subscriptionActor, clientRepository, unackRepository, eventRepo), name = "eventrouter")
+    //subscriptionService.start(system)
   }
 }

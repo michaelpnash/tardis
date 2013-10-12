@@ -9,8 +9,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
 
-class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientRepository, eventRepository: EventRepository,
-  system: ActorSystem) extends UnacknowledgedRepository(clientRepo, system) {
+class PersistentUnacknowledgedRepository(path: String, clientRepo: ClientRepository, eventRepository: EventRepository) extends UnacknowledgedRepository(clientRepo) {
   
   require(!path.endsWith("/"), s"Path must not end with a /, but $path does")
   val unackDir = new File(path + "/unacknowledged/")

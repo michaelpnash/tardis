@@ -9,7 +9,7 @@ trait ClientRepository {
 
   def list: Iterable[Client]
   
-  def findOrCreate(id: String)(implicit system: ActorSystem): Client
+  def findOrCreate(id: String): Client
 
   def store(client: Client): Client
   
@@ -36,7 +36,7 @@ class TransientClientRepository extends ClientRepository {
 
   def list = clients.values
   
-  def findOrCreate(id: String)(implicit system: ActorSystem) = clients.get(id).getOrElse({
+  def findOrCreate(id: String) = clients.get(id).getOrElse({
     val client = Client(id)
     clients.put(client.id, client)
     client

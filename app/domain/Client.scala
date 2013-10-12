@@ -4,7 +4,7 @@ import com.jglobal.tardis._
 import akka.actor._
 import scala.util.Random
 
-case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[EventType] = Set(), publishes: Set[EventType] = Set())(implicit system: ActorSystem) {
+case class Client(id: String, nodes: Set[ClientNode] = Set(), subscribes: Set[EventType] = Set(), publishes: Set[EventType] = Set()) {
   
   val timeout = 30000
   val random = new Random(System.currentTimeMillis)
