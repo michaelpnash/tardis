@@ -11,3 +11,11 @@
 /target/
 /data/clients/commandline
 /data/clients/clientid
+/.target
+/bin
+
+/.cache
+/.classpath
+
+/.project
+/.settings/

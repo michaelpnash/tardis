@@ -5,17 +5,17 @@ import play.api.GlobalSettings
 import javax.sql.DataSource
 import akka.actor.ActorSystem
 import controllers.Application
-import infrastructure.api._
 import domain._
+import infrastructure.api.{SubscriptionService, SubscriptionActor}
 import com.typesafe.config._
 import com.softwaremill.macwire.{InstanceLookup, Macwire}
+import infrastructure.api.EventRouterActor
 
 object Global extends GlobalSettings with Macwire {
 
   val instanceLookup = InstanceLookup(valsByClass(TardisModule))
 
   override def getControllerInstance[A](controllerClass: Class[A]) = instanceLookup.lookupSingleOrThrow(controllerClass)
-
   override def onStart(app: play.api.Application) {
     TardisModule.start(play.libs.Akka.system)
     ChatActors.start(play.libs.Akka.system)

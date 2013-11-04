@@ -26,7 +26,7 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
   "the persistent unacknowledged repository" - {
     "can store and retrieve information for an unacknowledged event to a client" in {
       val eventRepo = new EventRepository
-      val repo = new PersistentUnacknowledgedRepository(path, new TransientClientRepository, eventRepo, null)
+      val repo = new PersistentUnacknowledgedRepository(path, new TransientClientRepository, eventRepo)
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientId")
       val clientAndEventId = ClientIdAndEventId("clientId", event.id)
       val containerAndTimeStamp = EventContainerAndTimeStamp(event, System.currentTimeMillis - 40000)
@@ -50,8 +50,8 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
     // }
     "can store unacknowledged data from one instantiation to another" in {
       val eventRepo = new PersistentEventRepository(path)
-      val clientRepo = new PersistentClientRepository(path, null)
-      val repo = new PersistentUnacknowledgedRepository(path, clientRepo, eventRepo, null)
+      val clientRepo = new PersistentClientRepository(ClientDirectory(path))
+      val repo = new PersistentUnacknowledgedRepository(path, clientRepo, eventRepo)
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientId")
       eventRepo.store(event)
       val clientAndEventId = ClientIdAndEventId("clientId", event.id)
@@ -59,8 +59,8 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
       repo.store(clientAndEventId, containerAndTimeStamp)
       
       val eventRepo2 = new PersistentEventRepository(path)
-      val clientRepo2 = new PersistentClientRepository(path, null)
-      val repo2 = new PersistentUnacknowledgedRepository(path, clientRepo2, eventRepo2, null)
+      val clientRepo2 = new PersistentClientRepository(ClientDirectory(path))
+      val repo2 = new PersistentUnacknowledgedRepository(path, clientRepo2, eventRepo2)
 
       val result = repo2.dueForRetry.toList
       assert(result.size === 1)

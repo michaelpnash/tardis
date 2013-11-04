@@ -8,6 +8,7 @@ import com.jglobal.tardis._
 import com.typesafe.config._
 import akka.testkit._
 import akka.testkit.ImplicitSender
+import infrastructure._
 import infrastructure.api._
 import java.util.UUID
 
@@ -19,10 +20,11 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
 
   private[this] def transientRouter = {
     val clientRepo = new TransientClientRepository
+    val subscriptionService = new SubscriptionService(clientRepo)
     val subscriptionActor = TestActorRef(new SubscriptionActor(clientRepo))
-    val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo, system)
+    val unacknowledgedRepo = new UnacknowledgedRepository(clientRepo)
     val eventRepo = new EventRepository
-    (clientRepo, subscriptionActor, unacknowledgedRepo, eventRepo, TestActorRef(new EventRouterActor(subscriptionActor, clientRepo, unacknowledgedRepo, eventRepo)))
+    (clientRepo, subscriptionActor, unacknowledgedRepo, eventRepo, TestActorRef(new EventRouterActor(subscriptionService, clientRepo, unacknowledgedRepo, eventRepo)))
   }
   
   "the event router class" - {
