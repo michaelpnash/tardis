@@ -52,7 +52,11 @@
                 <tbody ng-repeat="item in items">
                   <tr>
                     <td>{{ item.id }}</td>
-                    <td>{{ item }}</td>
+                    <td>{{ item.publishes }}</td>
+                    <td>{{ item.subscribes }}</td>
+                    <td>{{ item.sentTo }}</td>
+                    <td>{{ item.receivedFrom }}</td>
+                    
                   </tr>
                 </tbody>
               </table>

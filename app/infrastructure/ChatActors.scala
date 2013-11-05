@@ -80,9 +80,14 @@ class Chatter(name: String, quotes: Seq[String]) extends Actor {
     case clientStats: ClientStats => {
       val info = ClientInfo.toJson(ClientDAO(clientStats.clientId, Set(), Set()), clientStats)
       val now: String = DateTime.now.toString
-      //ChatApplication.chatChannel.push(Json.toJson(info))
-      val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now)
+      
+      val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now, "publishes" -> "", "sentTo" -> clientStats.eventsSentTo.count, 
+          "receivedFrom" -> clientStats.eventsReceivedFrom.count, "acks" -> clientStats.acks.count)
+      //println("Msg is a " + msg.getClass.getName)
+      println("Info is a " + info.getClass.getName)
+      //val msg = info
       println(s"Pushing status $msg to client")
+      println(s"Not sending $info to client")
       ChatApplication.chatChannel.push(msg)
     }
     case ChatActors.Talk  => {
