@@ -26,7 +26,11 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   }
 
   def receive = {
-    case subscription: Subscription => subscriptionService.subscribe(subscription, sender)
+    case subscription: Subscription => {
+      subscriptionService.subscribe(subscription, sender)
+      println(s"Got subscription from ${subscription.clientId}")
+      doctor ! clientRepo.stats(subscription.clientId)
+    }
     case event: EventContainer => {
       println(s"Sending event to doctor at ${doctor}")
       doctor ! s"I got an event $event"

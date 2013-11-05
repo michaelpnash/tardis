@@ -80,7 +80,7 @@ class Chatter(name: String, quotes: Seq[String], chatChannel: Channel[JsValue]) 
       val now: String = DateTime.now.toString
       
       val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now, "publishes" -> "", "sentTo" -> clientStats.eventsSentTo.count, 
-          "receivedFrom" -> clientStats.eventsReceivedFrom.count, "acks" -> clientStats.acks.count)
+          "receivedFrom" -> clientStats.eventsReceivedFrom.count, "acksFrom" -> clientStats.acks.count)
       //println("Msg is a " + msg.getClass.getName)
       println("Info is a " + info.getClass.getName)
       //val msg = info
