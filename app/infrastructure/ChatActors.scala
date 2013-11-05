@@ -3,19 +3,19 @@ package akka
 import akka.actor._
 import com.jglobal.tardis.{ClientStats, CountAndLast}
 import domain.Client
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.json.Json
 import play.api.libs.functional.syntax._
 import infrastructure.SerializableClient._
-
 import scala.language.postfixOps
 import scala.concurrent.duration._
-
 import controllers.ChatApplication
 import org.joda.time.DateTime
 import scala.util.Random
+
+import infrastructure.SerializableClient._
+import play.api.libs.iteratee.Concurrent.Channel
 
 object ClientInfo {
   
@@ -42,28 +42,26 @@ object ClientInfo {
   
 }
 
-import infrastructure.SerializableClient._
-
 object ChatActors {
 
-  def start(system: ActorSystem) {
+  def start(system: ActorSystem, chatChannel: Channel[JsValue]) {
 
     /** Supervisor for Romeo and Juliet */
-    val supervisor = system.actorOf(Props(new Supervisor()), "ChatterSupervisor")
+    val supervisor = system.actorOf(Props(new Supervisor(chatChannel)), "ChatterSupervisor")
   }
 
   case object Talk
 }
 
 /** Supervisor initiating Romeo and Juliet actors and scheduling their talking */
-class Supervisor() extends Actor {
-  val doctor = context.actorOf(Props(new Chatter("Doctor", Seq())), "doctor")
+class Supervisor(chatChannel: Channel[JsValue]) extends Actor {
+  val doctor = context.actorOf(Props(new Chatter("Doctor", Seq(), chatChannel)), "doctor")
   println("Doctor at " + doctor.path)
   def receive = { case _ => }
 }
 
 /** Chat participant actors picking quotes at random when told to talk */
-class Chatter(name: String, quotes: Seq[String]) extends Actor {
+class Chatter(name: String, quotes: Seq[String], chatChannel: Channel[JsValue]) extends Actor {
   
   def receive = {
 //    case str: String => {
@@ -75,7 +73,7 @@ class Chatter(name: String, quotes: Seq[String]) extends Actor {
     case client: Client => {
       val now: String = DateTime.now.toString
       val msg = Json.obj("room" -> "room1", "text" -> client.toString, "user" -> "doctor", "time" -> now)
-      ChatApplication.chatChannel.push(msg)
+      chatChannel.push(msg)
     }
     case clientStats: ClientStats => {
       val info = ClientInfo.toJson(ClientDAO(clientStats.clientId, Set(), Set()), clientStats)
@@ -88,14 +86,14 @@ class Chatter(name: String, quotes: Seq[String]) extends Actor {
       //val msg = info
       println(s"Pushing status $msg to client")
       println(s"Not sending $info to client")
-      ChatApplication.chatChannel.push(msg)
+      chatChannel.push(msg)
     }
     case ChatActors.Talk  => {
       val now: String = DateTime.now.toString
       val quote = quotes(Random.nextInt(quotes.size))
       val msg = Json.obj("room" -> "room1", "text" -> quote, "user" ->  name, "time" -> now )
 
-      ChatApplication.chatChannel.push(msg)
+      chatChannel.push(msg)
     }
   }
 }

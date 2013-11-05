@@ -10,6 +10,8 @@ import infrastructure.api.{SubscriptionService, SubscriptionActor}
 import com.typesafe.config._
 import com.softwaremill.macwire.{InstanceLookup, Macwire}
 import infrastructure.api.EventRouterActor
+import play.api.libs.json.JsValue
+import play.api.libs.iteratee.Concurrent
 
 object Global extends GlobalSettings with Macwire {
 
@@ -18,7 +20,7 @@ object Global extends GlobalSettings with Macwire {
   override def getControllerInstance[A](controllerClass: Class[A]) = instanceLookup.lookupSingleOrThrow(controllerClass)
   override def onStart(app: play.api.Application) {
     TardisModule.start(play.libs.Akka.system)
-    ChatActors.start(play.libs.Akka.system)
+    ChatActors.start(play.libs.Akka.system, TardisModule.chatChannel)
   }
   
   override def onStop(application: play.api.Application) {
@@ -36,6 +38,10 @@ object TardisModule {
   lazy val application = wire[Application]
   lazy val eventRepo = wire[EventRepository]
   lazy val unackRepository = wire[UnacknowledgedRepository]
+  lazy val pair = Concurrent.broadcast[JsValue]
+  lazy val chatOut = pair._1;
+  lazy val chatChannel = pair._2;
+  lazy val chatApplication = wire[controllers.ChatApplication];
   
   def start(system: ActorSystem) {
     subscriptionService.start(system)

@@ -4,14 +4,16 @@ import domain.ClientRepository
 import infrastructure.Global
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.api.libs.iteratee.{Concurrent, Enumeratee}
+import play.api.libs.iteratee.{Concurrent, Enumeratee, Enumerator}
+import play.api.libs.iteratee.Concurrent._
 import play.api.libs.EventSource
 import play.api.libs.concurrent.Execution.Implicits._
 
-object ChatApplication extends Controller {
-
+class ChatApplication(chatOut: Enumerator[JsValue], chatChannel: Channel[JsValue]) extends Controller {
+  require(chatOut != null)
+  require(chatChannel != null)
   /** Central hub for distributing chat messages */
-  val (chatOut, chatChannel) = Concurrent.broadcast[JsValue]
+  //val (chatOut, chatChannel) = Concurrent.broadcast[JsValue]
 
   /** Controller action serving chat page */
   def index = Action { Ok(views.html.index("Chat using Server Sent Events")) }
