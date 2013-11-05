@@ -80,5 +80,24 @@ The status page uses server-side events, so it updates in near-real-time to show
 
 This is handy when setting up a cluster to ensure each client is connecting properly.
 
+Why Not...
+==========
+Tardis solves a problem that is similar to that which many different communication and middleware systems solve, so it's reasonable
+to ask a number of "Why Not...X" when understanding how Tardis fits in the picture.
 
+Why Not REST calls to other services?
+-------------------------------------
+Direct calls, either Socket-based or HTTP/REST based, are synchronous and blocking. Tardis isn't, either for publishing or subscribing.
+Direct calls also require that each service be able to locate every other service, and to have knowledge of every other service that it needs to call, Tardis doesn't have this requirement.
+
+Why Not JMS? RabbitMQ? ZeroMQ?
+------------------------------
+ActiveMQ and other JMS and AMQP solutions are excellent tools, and I've used them a lot. They are, however, more complex and heavyweight than Tardis, and support both queueing and publish/subscribe (topics). Tardis ONLY does publish subscribe, and is very lightweight (and based on Akka's remote actor protocol).
+
+
+Roadmap
+-------
+* Sample client application, maybe a Typesafe Activator to build a client
+* Server clustering: the client proxy should take a list of addresses, each of which is a Tardis server, and distribute it's publish calls between them.
+* Better doc, diagrams, etc
   
