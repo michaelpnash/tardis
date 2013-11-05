@@ -36,6 +36,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
         client.sendEvent(event)
         doctor ! clientRepo.stats(client.id)
       })
+      doctor ! clientRepo.stats(event.clientId)
       sender ! Ack(event.id, event.clientId)
     }
     case stats: ClientStats => {

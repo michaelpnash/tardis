@@ -27,13 +27,6 @@ object ChatActors {
 
 /** Supervisor initiating Romeo and Juliet actors and scheduling their talking */
 class Supervisor() extends Actor {
-
-  // val juliet = context.actorOf(Props(new Chatter("Juliet", Quotes.juliet)))
-  // context.system.scheduler.schedule(1 seconds, 10 seconds, juliet, ChatActors.Talk)
-  
-  // val romeo = context.actorOf(Props(new Chatter("Romeo", Quotes.romeo)))
-  // context.system.scheduler.schedule(6 seconds, 10 seconds, romeo, ChatActors.Talk)
-
   val doctor = context.actorOf(Props(new Chatter("Doctor", Seq())), "doctor")
   println("Doctor at " + doctor.path)
   def receive = { case _ => }
@@ -57,6 +50,7 @@ class Chatter(name: String, quotes: Seq[String]) extends Actor {
     case clientStats: ClientStats => {
       val now: String = DateTime.now.toString
       val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now)
+      println(s"Pushing status $msg to client")
       ChatApplication.chatChannel.push(msg)
     }
     case ChatActors.Talk  => {

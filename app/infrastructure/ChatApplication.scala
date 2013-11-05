@@ -39,5 +39,4 @@ object ChatApplication extends Controller {
       &> EventSource()
     ).as("text/event-stream")
   }
-
 }

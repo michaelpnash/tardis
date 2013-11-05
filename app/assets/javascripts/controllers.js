@@ -2,7 +2,8 @@
 
 /** Controllers */
 angular.module('sseChat.controllers', ['sseChat.services']).
-    controller('ChatCtrl', function ($scope, $http, chatModel) {
+    controller('ChatCtrl', function ($scope, $http, chatModel, $log) {
+    	$log.log("ChatCtrl controller initialized");
         $scope.items = [];
         $scope.rooms = chatModel.getRooms();
         $scope.msgs = [];
@@ -34,6 +35,7 @@ angular.module('sseChat.controllers', ['sseChat.services']).
                 var newStat = JSON.parse(msg.data);
                 var found = 0;
                 for (var i in $scope.items) {
+                  $log.log("item is " + $scope.items[i].id);
                   if ($scope.items[i].id == newStat.id) {
                         $scope.items[i] = newStat;
                         found = 1;
