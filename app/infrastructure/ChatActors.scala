@@ -1,11 +1,14 @@
 package akka
 
 import akka.actor._
-import com.jglobal.tardis.ClientStats
+import com.jglobal.tardis.{ClientStats, CountAndLast}
 import domain.Client
 
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.libs.json.Json
+import play.api.libs.functional.syntax._
+import infrastructure.SerializableClient._
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
@@ -13,6 +16,33 @@ import scala.concurrent.duration._
 import controllers.ChatApplication
 import org.joda.time.DateTime
 import scala.util.Random
+
+object ClientInfo {
+  
+  case class ClientInfo(client: ClientDAO, stats: ClientStats)
+
+  implicit val countAndLastWrites: Writes[CountAndLast] = (
+    (JsPath \ "count").write[Long] and
+    (JsPath \ "last").write[Long]
+  )(unlift(CountAndLast.unapply))
+  
+  implicit val clientStatsWrites: Writes[ClientStats] = (
+    (JsPath \ "clientId").write[String] and
+    (JsPath \ "eventsSentTo").write[CountAndLast] and
+    (JsPath \ "acks").write[CountAndLast] and
+    (JsPath \ "eventsReceivedFrom").write[CountAndLast]
+  )(unlift(ClientStats.unapply))
+  
+  implicit val clientInfoWrites: Writes[ClientInfo] = (
+    (JsPath \ "client").write[ClientDAO] and
+    (JsPath \ "stats").write[ClientStats]
+  )(unlift(ClientInfo.unapply))
+  
+  def toJson(client: ClientDAO, stats: ClientStats) = Json.toJson(ClientInfo(client, stats))
+  
+}
+
+import infrastructure.SerializableClient._
 
 object ChatActors {
 
@@ -36,19 +66,21 @@ class Supervisor() extends Actor {
 class Chatter(name: String, quotes: Seq[String]) extends Actor {
   
   def receive = {
-    case str: String => {
-      println(s"Got a string in chatter $str")
-      val now: String = DateTime.now.toString
-      val msg = Json.obj("room" -> "room1", "text" -> str, "user" -> name, "time" -> now)
-      ChatApplication.chatChannel.push(msg)
-    }
+//    case str: String => {
+//      println(s"Got a string in chatter $str")
+//      val now: String = DateTime.now.toString
+//      val msg = Json.obj("room" -> "room1", "text" -> str, "user" -> name, "time" -> now)
+//      ChatApplication.chatChannel.push(msg)
+//    }
     case client: Client => {
       val now: String = DateTime.now.toString
       val msg = Json.obj("room" -> "room1", "text" -> client.toString, "user" -> "doctor", "time" -> now)
       ChatApplication.chatChannel.push(msg)
     }
     case clientStats: ClientStats => {
+      val info = ClientInfo.toJson(ClientDAO(clientStats.clientId, Set(), Set()), clientStats)
       val now: String = DateTime.now.toString
+      //ChatApplication.chatChannel.push(Json.toJson(info))
       val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now)
       println(s"Pushing status $msg to client")
       ChatApplication.chatChannel.push(msg)

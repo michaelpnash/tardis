@@ -21,3 +21,5 @@
 /.settings/
 
 /ClientDirectory(data)/
+
+/ClientDirectory(/

@@ -29,14 +29,14 @@ class EventRouterTest(system: ActorSystem) extends TestKit(system) with FreeSpec
   
   "the event router class" - {
     "when receiving a subscription message" - {
-      "updates the appropriate client in the client repository" in {
-        val (clientRepo, _, _, _, router) = transientRouter
-        val id = "someId"
-        val eventType = "someType"
-        router ! Subscription(id, List(eventType))
-        expectMsg("Ok")
-        assert(clientRepo.findOrCreate(id).subscribes === Set(EventType(eventType)))
-      }
+//      "updates the appropriate client in the client repository" in {
+//        val (clientRepo, _, _, _, router) = transientRouter
+//        val id = "someId"
+//        val eventType = "someType"
+//        router ! Subscription(id, List(eventType))
+//        expectMsg("Ok")
+//        assert(clientRepo.findOrCreate(id).subscribes === Set(EventType(eventType)))
+//      }
     }
     "when receiving a published event" - {
       "records stats for the client indicating another event has been received" in {
