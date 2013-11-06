@@ -1,8 +1,6 @@
 package infrastructure
 
-import domain.{ClientRepository, TransientClientRepository, Client}
-
-import akka.actor._
+import domain.{TransientClientRepository, Client}
 
 import scala.io.Source._
 import java.io.{File, PrintWriter}

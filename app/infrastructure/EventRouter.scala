@@ -34,7 +34,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
     case event: EventContainer => {
       println(s"Sending event to doctor at ${doctor}")
       doctor ! s"I got an event $event"
-      clientRepo.recordPublished(event.clientId, event.eventType)(context.system)
+      clientRepo.recordPublished(event.clientId, event.eventType)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
@@ -96,7 +96,7 @@ class SubscriptionActor(clientRepository: ClientRepository) extends Actor with A
       statsAndSender.sender ! clientRepository.stats(statsAndSender.stats.clientId)
     }
     case subscriptionAndSender: SubscriptionAndSender => {
-     clientRepository.recordSubscription(subscriptionAndSender.sender, subscriptionAndSender.subscription)(context.system)
+     clientRepository.recordSubscription(subscriptionAndSender.sender, subscriptionAndSender.subscription)
      subscriptionAndSender.sender ! "Ok"
    }
 
