@@ -3,11 +3,11 @@
 # ~~~~
 
 # Home page
-GET     /                           @controllers.ChatApplication.index
-GET     /chatFeed/:room             @controllers.ChatApplication.chatFeed(room: String)
-POST    /chat                       @controllers.ChatApplication.postMessage
+GET     /                           @infrastructure.controllers.ChatApplication.index
+GET     /chatFeed/:room             @infrastructure.controllers.ChatApplication.chatFeed(room: String)
+POST    /chat                       @infrastructure.controllers.ChatApplication.postMessage
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /webjars/*file              controllers.WebJarAssets.at(file)  
-GET     /status                     @controllers.Application.index
+

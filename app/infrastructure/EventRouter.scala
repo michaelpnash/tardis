@@ -3,7 +3,6 @@ package infrastructure.api
 import com.jglobal.tardis._
 import domain._
 import akka.actor._
-import java.util.UUID
 import scala.concurrent.duration._
 
 case object Retry

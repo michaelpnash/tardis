@@ -1,4 +1,4 @@
-package controllers
+package infrastructure.controllers
 
 import domain.ClientRepository
 import infrastructure.Global

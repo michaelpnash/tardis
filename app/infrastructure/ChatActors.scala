@@ -10,12 +10,12 @@ import play.api.libs.functional.syntax._
 import infrastructure.SerializableClient._
 import scala.language.postfixOps
 import scala.concurrent.duration._
-import controllers.ChatApplication
 import org.joda.time.DateTime
 import scala.util.Random
 
 import infrastructure.SerializableClient._
 import play.api.libs.iteratee.Concurrent.Channel
+import infrastructure.controllers.ChatApplication
 
 object ClientInfo {
   

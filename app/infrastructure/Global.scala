@@ -2,9 +2,7 @@ package infrastructure
 
 import akka.ChatActors
 import play.api.GlobalSettings
-import javax.sql.DataSource
 import akka.actor.ActorSystem
-import controllers.Application
 import domain._
 import infrastructure.api.{SubscriptionService, SubscriptionActor}
 import com.typesafe.config._
@@ -35,7 +33,6 @@ object TardisModule {
   lazy val clientDir = ClientDirectory(config.getString("tardis.data.dir"))
   lazy val clientRepository = wire[PersistentClientRepository]
   lazy val subscriptionService: SubscriptionService = wire[SubscriptionService]
-  lazy val application = wire[Application]
   lazy val eventRepo = wire[EventRepository]
   lazy val unackRepository = wire[UnacknowledgedRepository]
   lazy val pair = Concurrent.broadcast[JsValue]
