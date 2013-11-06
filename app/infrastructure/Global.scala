@@ -1,6 +1,6 @@
 package infrastructure
 
-import akka.ChatActors
+import akka.StatsActors
 import play.api.GlobalSettings
 import akka.actor.ActorSystem
 import domain._
@@ -18,7 +18,7 @@ object Global extends GlobalSettings with Macwire {
   override def getControllerInstance[A](controllerClass: Class[A]) = instanceLookup.lookupSingleOrThrow(controllerClass)
   override def onStart(app: play.api.Application) {
     TardisModule.start(play.libs.Akka.system)
-    ChatActors.start(play.libs.Akka.system, TardisModule.chatChannel)
+    StatsActors.start(play.libs.Akka.system, TardisModule.chatChannel)
   }
   
   override def onStop(application: play.api.Application) {
