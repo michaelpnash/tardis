@@ -20,19 +20,11 @@ angular.module('sseChat.controllers', ['sseChat.services']).
         };
 
         $scope.status = [];
-                
-        /** posting chat text to server */
-        $scope.submitMsg = function () {
-            $http.post("/chat", { text: $scope.inputText, user: $scope.user,
-                time: (new Date()).toUTCString(), room: $scope.currentRoom.value });
-            $scope.inputText = "";
-        };
 
         /** handle incoming messages: add to messages array */
         $scope.addMsg = function (msg) { 
             $scope.$apply(function() {
                 var newStat = JSON.parse(msg.data);
-                $log.log("newStat.text:" + newStat.text);
                 var found = 0;
                 for (var i in $scope.items) {
                   if ($scope.items[i].id == newStat.id) {

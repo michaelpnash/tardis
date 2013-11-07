@@ -1,6 +1,5 @@
 package infrastructure
 
-import akka.StatsActors
 import play.api.GlobalSettings
 import akka.actor.ActorSystem
 import domain._
