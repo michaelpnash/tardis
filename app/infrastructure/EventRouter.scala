@@ -34,6 +34,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
+        clientRepo.recordEventSent(client.id)
         statsActor ! clientRepo.stats(client.id)
       })
       statsActor ! clientRepo.stats(event.clientId)

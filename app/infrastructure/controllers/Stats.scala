@@ -9,15 +9,11 @@ import play.api.libs.iteratee.Concurrent._
 import play.api.libs.EventSource
 import play.api.libs.concurrent.Execution.Implicits._
 
-class ChatApplication(statsEnumerator: Enumerator[JsValue], chatChannel: Channel[JsValue], clientRepo: ClientRepository) extends Controller {
+class Stats(statsEnumerator: Enumerator[JsValue], statsChannel: Channel[JsValue], clientRepo: ClientRepository) extends Controller {
   require(statsEnumerator != null)
-  require(chatChannel != null)
+  require(statsChannel != null)
 
-  /** Controller action serving chat page */
   def index = Action { Ok(views.html.index("TARDIS Status")) }
-
-  /** Controller action for POSTing chat messages */
-  def postMessage = Action(parse.json) { req => chatChannel.push(req.body); Ok }
 
   /** Enumeratee for filtering messages based on room */
   def filter(room: String) = Enumeratee.filter[JsValue] { json: JsValue => (json \ "room").as[String] == room }

@@ -28,6 +28,7 @@
                   <th>Sent To</th>
                   <th>Received From</th>
                   <th>Acks From</th>
+                  <th>Active Nodes</th>
                 </tr>
                 <tbody ng-repeat="item in items">
                   <tr>
@@ -37,6 +38,7 @@
                     <td>{{ item.sentTo }}</td>
                     <td>{{ item.receivedFrom }}</td>
                     <td>{{ item.acksFrom }}</td>
+                    <td>{{ item.nodes }}</td>
                   </tr>
                 </tbody>
               </table>

@@ -2,7 +2,7 @@ package akka
 
 import akka.actor._
 import com.jglobal.tardis.{ClientStats, CountAndLast}
-import domain.Client
+import domain.{ClientRepository, Client}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.json.Json
@@ -15,7 +15,7 @@ import scala.util.Random
 
 import infrastructure.SerializableClient._
 import play.api.libs.iteratee.Concurrent.Channel
-import infrastructure.controllers.ChatApplication
+import infrastructure.controllers.Stats
 
 object ClientInfo {
   
@@ -44,33 +44,35 @@ object ClientInfo {
 
 object StatsActors {
 
-  def start(system: ActorSystem, chatChannel: Channel[JsValue]) {
-    val supervisor = system.actorOf(Props(new Supervisor(chatChannel)), "ChatterSupervisor")
+  def start(system: ActorSystem, statsChannel: Channel[JsValue], clientRepo: ClientRepository) {
+    val supervisor = system.actorOf(Props(new Supervisor(statsChannel, clientRepo)), "ChatterSupervisor")
   }
 }
 
-/** Supervisor initiating Romeo and Juliet actors and scheduling their talking */
-class Supervisor(chatChannel: Channel[JsValue]) extends Actor {
-  val statsSender = context.actorOf(Props(new Chatter("Doctor", Seq(), chatChannel)), "doctor")
+class Supervisor(statsChannel: Channel[JsValue], clientRepo: ClientRepository) extends Actor {
+  val statsSender = context.actorOf(Props(new StatsActor("Doctor", clientRepo, statsChannel)), "doctor")
   def receive = { case _ => }
 }
 
-/** Chat participant actors picking quotes at random when told to talk */
-class Chatter(name: String, quotes: Seq[String], chatChannel: Channel[JsValue]) extends Actor {
+class StatsActor(name: String, clientRepo: ClientRepository, statsChannel: Channel[JsValue]) extends Actor {
   
   def receive = {
     case client: Client => {
       val now: String = DateTime.now.toString
       val msg = Json.obj("room" -> "room1", "text" -> client.toString, "user" -> "doctor", "time" -> now)
-      chatChannel.push(msg)
+      statsChannel.push(msg)
     }
     case clientStats: ClientStats => {
       val info = ClientInfo.toJson(ClientDAO(clientStats.clientId, Set(), Set()), clientStats)
       val now: String = DateTime.now.toString
-      
-      val msg = Json.obj("id" -> clientStats.clientId, "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now, "publishes" -> "", "sentTo" -> clientStats.eventsSentTo.count, 
+      val client = clientRepo.findOrCreate(clientStats.clientId)
+      val msg = Json.obj("id" -> clientStats.clientId,
+        "publishes" -> client.publishes.map(_.name).mkString(","),
+        "subscribes" -> client.subscribes.map(_.name).mkString(","),
+        "nodes" -> client.nodes.size,
+        "room" -> "room1", "text" -> clientStats.toString, "user" -> "doctor", "time" -> now, "publishes" -> "", "sentTo" -> clientStats.eventsSentTo.count,
           "receivedFrom" -> clientStats.eventsReceivedFrom.count, "acksFrom" -> clientStats.acks.count)
-      chatChannel.push(msg)
+      statsChannel.push(msg)
     }
   }
 }

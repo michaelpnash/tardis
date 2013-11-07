@@ -18,7 +18,7 @@ object Global extends GlobalSettings with Macwire {
   override def getControllerInstance[A](controllerClass: Class[A]) = instanceLookup.lookupSingleOrThrow(controllerClass)
   override def onStart(app: play.api.Application) {
     TardisModule.start(play.libs.Akka.system)
-    StatsActors.start(play.libs.Akka.system, TardisModule.chatChannel)
+    StatsActors.start(play.libs.Akka.system, TardisModule.chatChannel, TardisModule.clientRepository)
   }
   
   override def onStop(application: play.api.Application) {
@@ -36,9 +36,9 @@ object TardisModule {
   lazy val eventRepo = wire[EventRepository]
   lazy val unackRepository = wire[UnacknowledgedRepository]
   lazy val pair = Concurrent.broadcast[JsValue]
-  lazy val chatOut = pair._1;
-  lazy val chatChannel = pair._2;
-  lazy val chatApplication = wire[controllers.ChatApplication];
+  lazy val chatOut = pair._1
+  lazy val chatChannel = pair._2
+  lazy val chatApplication = wire[controllers.Stats]
   
   def start(system: ActorSystem) {
     subscriptionService.start(system)
