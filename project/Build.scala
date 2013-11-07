@@ -29,8 +29,8 @@ object ApplicationBuild extends Build {
     id = "integration",
     base = file("integration"),
     settings = buildSettings ++
-      Seq(libraryDependencies ++= Dependencies.base)
-  ).dependsOn(main)
+      Seq(libraryDependencies ++= Dependencies.base, Keys.fork in run := true)
+  ).dependsOn(client)
   
   object Dependencies {
     val base = Seq(
