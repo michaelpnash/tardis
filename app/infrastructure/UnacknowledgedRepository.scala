@@ -1,11 +1,8 @@
 package domain
 
 import com.jglobal.tardis._
-import domain._
-import akka.actor._
 import java.util.UUID
 import scala.collection.mutable.SynchronizedMap
-import scala.concurrent.duration._
 
 case class ClientIdAndEventId(clientId: String, eventId: UUID)
 case class EventContainerAndTimeStamp(container: EventContainer, timestamp: Long)

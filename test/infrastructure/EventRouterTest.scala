@@ -3,12 +3,13 @@ package infrastructure
 import org.scalatest.FreeSpec
 import infrastructure.api._
 import akka.testkit.{TestActorRef, TestKit, DefaultTimeout, ImplicitSender}
-import domain.{TransientClientRepository, EventRepository, UnacknowledgedRepository}
+import domain._
 import com.typesafe.config.ConfigFactory
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import scala.collection.immutable
-import com.jglobal.tardis.Ack
+import com.jglobal.tardis.{EventContainer, Ack}
 import java.util.UUID
+import domain.ClientIdAndEventId
 
 class EventRouterTest extends TestKit(ActorSystem("TestKitUsageSpec",
     ConfigFactory.parseString(TestKitUsageSpec.config)))
@@ -27,11 +28,15 @@ class EventRouterTest extends TestKit(ActorSystem("TestKitUsageSpec",
         val statsBefore = clientRepo.stats(clientId)
         eventRouter ! Ack(UUID.randomUUID, clientId)
         val statsAfter = clientRepo.stats(clientId)
-        println(s"Stats before/after $statsBefore/$statsAfter")
         assert(statsAfter.acks.count === statsBefore.acks.count + 1)
       }
       "removes the event corresponding to the ack from the unacknowledged repo" in {
-        //unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
+        val clientId = "secondClientId"
+        val eventId = UUID.randomUUID
+        unackRepo.store(ClientIdAndEventId(clientId, eventId), EventContainerAndTimeStamp(EventContainer(eventId, "type", "payload", clientId), 0L))
+        assert(unackRepo.list.size === 1)
+        eventRouter ! Ack(eventId, clientId)
+        assert(unackRepo.list.size === 0)
       }
       "tells the stats actor to send stats for the client id that sent the ack" in {
         //statsActor ! clientRepo.stats(ack.clientId)

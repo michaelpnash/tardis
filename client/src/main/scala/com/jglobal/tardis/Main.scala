@@ -50,7 +50,10 @@ This is an interactive client app to the TARDIS event router. You can type the f
   }
 
   def subscribe(eventType: String) = {
-    proxy.registerHandler({ evt => println(evt) }, eventType)
+    proxy.registerHandler({
+      evt => println(evt)
+      proxy.ack(evt.id)
+    }, eventType)
     s"Subscribed to $eventType"
   }
 

@@ -60,10 +60,7 @@ class TransientClientRepository extends ClientRepository {
     clients.map(p => clients.put(p._1, p._2.withoutStaleNodes))
   }
 
-  override def stats(clientId: String) = {
-    println(s"Stats for $clientId:" + clientStats.get(clientId))
-    clientStats.get(clientId).getOrElse(ClientStats(clientId))
-  }
+  override def stats(clientId: String) = clientStats.get(clientId).getOrElse(ClientStats(clientId))
 
   override def recordAck(clientId: String) {
     clientStats.put(clientId, stats(clientId).withAck)

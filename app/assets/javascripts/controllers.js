@@ -32,6 +32,7 @@ angular.module('sseChat.controllers', ['sseChat.services']).
         $scope.addMsg = function (msg) { 
             $scope.$apply(function() {
                 var newStat = JSON.parse(msg.data);
+                $log.log("newStat.text:" + newStat.text);
                 var found = 0;
                 for (var i in $scope.items) {
                   if ($scope.items[i].id == newStat.id) {
