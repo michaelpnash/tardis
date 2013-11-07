@@ -2,7 +2,7 @@ package infrastructure
 
 import org.scalatest.FreeSpec
 import infrastructure.api._
-import akka.testkit.{TestKit, DefaultTimeout, ImplicitSender}
+import akka.testkit.{TestActorRef, TestKit, DefaultTimeout, ImplicitSender}
 import domain.{TransientClientRepository, EventRepository, UnacknowledgedRepository}
 import com.typesafe.config.ConfigFactory
 import akka.actor.{Actor, ActorRef, ActorSystem}
@@ -18,7 +18,7 @@ class EventRouterTest extends TestKit(ActorSystem("TestKitUsageSpec",
   val clientRepo = new TransientClientRepository()
   val unackRepo = new UnacknowledgedRepository(clientRepo)
   val eventRepo = null
-  val eventRouter = system.actorOf(EventRouterActor.props(subscriptionService, clientRepo,
+  val eventRouter = TestActorRef(new EventRouterActor(subscriptionService, clientRepo,
       unackRepo, eventRepo))
   "the event router actor" - {
     "when receiving an ack" - {
@@ -27,6 +27,7 @@ class EventRouterTest extends TestKit(ActorSystem("TestKitUsageSpec",
         val statsBefore = clientRepo.stats(clientId)
         eventRouter ! Ack(UUID.randomUUID, clientId)
         val statsAfter = clientRepo.stats(clientId)
+        println(s"Stats before/after $statsBefore/$statsAfter")
         assert(statsAfter.acks.count === statsBefore.acks.count + 1)
       }
       "removes the event corresponding to the ack from the unacknowledged repo" in {
@@ -53,42 +54,6 @@ object TestKitUsageSpec {
   class EchoActor extends Actor {
     def receive = {
       case msg ⇒ sender ! msg
-    }
-  }
-
-  /**
-   * An Actor that forwards every message to a next Actor
-   */
-  class ForwardingActor(next: ActorRef) extends Actor {
-    def receive = {
-      case msg ⇒ next ! msg
-    }
-  }
-
-  /**
-   * An Actor that only forwards certain messages to a next Actor
-   */
-  class FilteringActor(next: ActorRef) extends Actor {
-    def receive = {
-      case msg: String ⇒ next ! msg
-      case _           ⇒ None
-    }
-  }
-
-  /**
-   * An actor that sends a sequence of messages with a random head list, an
-   * interesting value and a random tail list. The idea is that you would
-   * like to test that the interesting value is received and that you cant
-   * be bothered with the rest
-   */
-  class SequencingActor(next: ActorRef, head: immutable.Seq[String],
-                        tail: immutable.Seq[String]) extends Actor {
-    def receive = {
-      case msg ⇒ {
-        head foreach { next ! _ }
-        next ! msg
-        tail foreach { next ! _ }
-      }
     }
   }
 }
