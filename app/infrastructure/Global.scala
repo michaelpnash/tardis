@@ -1,12 +1,10 @@
 package infrastructure
 
+import domain._
 import play.api.GlobalSettings
 import akka.actor.ActorSystem
-import domain._
-import infrastructure.api.{SubscriptionService, SubscriptionActor}
 import com.typesafe.config._
 import com.softwaremill.macwire.{InstanceLookup, Macwire}
-import infrastructure.api.EventRouterActor
 import play.api.libs.json.JsValue
 import play.api.libs.iteratee.Concurrent
 

@@ -1,4 +1,4 @@
-package infrastructure.api 
+package infrastructure
 
 import com.jglobal.tardis._
 import domain._
