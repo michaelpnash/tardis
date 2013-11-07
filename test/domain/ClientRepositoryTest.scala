@@ -4,11 +4,11 @@ import org.scalatest.{FreeSpec, BeforeAndAfterAll}
 import akka.actor._
 import com.jglobal.tardis._
 import com.typesafe.config._
+import infrastructure.TestKitUsageSpec
 
 class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
-  val config = ConfigFactory.load()
-  implicit val system = ActorSystem("test-client-repo", config.getConfig("test").withFallback(config))
-  
+  implicit val system = ActorSystem("test-client-repo", ConfigFactory.parseString(TestKitUsageSpec.config))
+
   val ref1 = system.actorOf(Props[TestActor])
   val ref2 = system.actorOf(Props[TestActor])
   
@@ -36,7 +36,6 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
     "will update client with new node and subscription information" in {
       val repo = new TransientClientRepository
       val id = "bar"
-      val client = Client(id)
       val fooType = "foo"
       repo.recordSubscription(ref1, Subscription(id, List(fooType)))
       val updatedClient = repo.findOrCreate(id)
@@ -50,7 +49,6 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val repo = new TransientClientRepository
       val id = "bar"
       val client = Client(id)
-      val fooType = "foo"
       repo.store(client)
       val publishedType = "other"
       repo.recordPublished(id, publishedType)
@@ -62,7 +60,7 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
       val repo = new TransientClientRepository
       val client1 = repo.store(Client("id1", subscribes = Set(EventType(type1), EventType(type2))))
       val client2 = repo.store(Client("id2", subscribes = Set(EventType(type1))))
-      val client3 = repo.store(Client("id3", subscribes = Set(EventType(type2))))
+      repo.store(Client("id3", subscribes = Set(EventType(type2))))
       assert(repo.subscribersOf(EventType(type1)) === List(client1, client2))
     }
     "can produce a stats object for any client that has stats recorded for it" in {
@@ -103,6 +101,6 @@ class ClientRepositoryTest extends FreeSpec with BeforeAndAfterAll {
   }
 
  override def afterAll() {
-   system.shutdown
+   system.shutdown()
  }
 }

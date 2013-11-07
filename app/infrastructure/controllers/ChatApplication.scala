@@ -9,14 +9,12 @@ import play.api.libs.iteratee.Concurrent._
 import play.api.libs.EventSource
 import play.api.libs.concurrent.Execution.Implicits._
 
-class ChatApplication(chatOut: Enumerator[JsValue], chatChannel: Channel[JsValue], clientRepo: ClientRepository) extends Controller {
-  require(chatOut != null)
+class ChatApplication(statsEnumerator: Enumerator[JsValue], chatChannel: Channel[JsValue], clientRepo: ClientRepository) extends Controller {
+  require(statsEnumerator != null)
   require(chatChannel != null)
-  /** Central hub for distributing chat messages */
-  //val (chatOut, chatChannel) = Concurrent.broadcast[JsValue]
 
   /** Controller action serving chat page */
-  def index = Action { Ok(views.html.index("Chat using Server Sent Events")) }
+  def index = Action { Ok(views.html.index("TARDIS Status")) }
 
   /** Controller action for POSTing chat messages */
   def postMessage = Action(parse.json) { req => chatChannel.push(req.body); Ok }
@@ -31,10 +29,10 @@ class ChatApplication(chatOut: Enumerator[JsValue], chatChannel: Channel[JsValue
   /** Controller action serving activity based on room */
   def chatFeed(room: String) = Action { req =>
     println(req.remoteAddress + " - SSE connected")
-   // val repo = Global.instanceLookup.lookupSingleOrThrow(classOf[ClientRepository])
-    val doctor = play.libs.Akka.system.actorSelection("/user/ChatterSupervisor/doctor")
-    clientRepo.list.foreach(client => doctor ! clientRepo.stats(client.id))
-    Ok.stream(chatOut
+    val statsActor = play.libs.Akka.system.actorSelection("/user/ChatterSupervisor/doctor")
+    clientRepo.list.foreach(client => statsActor ! clientRepo.stats(client.id))
+    println(s"Pushing initial stats for ${clientRepo.list.size} clients")
+    Ok.stream(statsEnumerator
       &> filter(room)
       &> Concurrent.buffer(50)
       &> connDeathWatch(req.remoteAddress)

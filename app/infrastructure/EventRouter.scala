@@ -18,7 +18,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   unacknowledgedRepo: UnacknowledgedRepository,
   eventRepo: EventRepository) extends Actor with ActorLogging {
 
-  val doctor = context.system.actorSelection("/user/ChatterSupervisor/doctor")
+  val statsActor = context.system.actorSelection("/user/ChatterSupervisor/doctor")
   
   override def preStart() {
     self ! Retry
@@ -27,19 +27,16 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   def receive = {
     case subscription: Subscription => {
       subscriptionService.subscribe(subscription, sender)
-      println(s"Got subscription from ${subscription.clientId}")
-      doctor ! clientRepo.stats(subscription.clientId)
+      statsActor ! clientRepo.stats(subscription.clientId)
     }
     case event: EventContainer => {
-      println(s"Sending event to doctor at ${doctor}")
-      doctor ! s"I got an event $event"
       clientRepo.recordPublished(event.clientId, event.eventType)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
         client.sendEvent(event)
-        doctor ! clientRepo.stats(client.id)
+        statsActor ! clientRepo.stats(client.id)
       })
-      doctor ! clientRepo.stats(event.clientId)
+      statsActor ! clientRepo.stats(event.clientId)
       sender ! Ack(event.id, event.clientId)
     }
     case stats: ClientStats => {
@@ -47,9 +44,10 @@ class EventRouterActor(subscriptionService: SubscriptionService,
       subscriptionService.stats(stats, sender)
     }
     case ack: Ack => {
-      doctor ! s"I got an ack: $ack"
+      println(s"Calling recordack for ${ack.clientId}")
       clientRepo.recordAck(ack.clientId)
       unacknowledgedRepo.remove(ClientIdAndEventId(ack.clientId, ack.id))
+      statsActor ! clientRepo.stats(ack.clientId)
     }
 
     case Identify => sender ! ActorIdentity("tardis", Some(self))
