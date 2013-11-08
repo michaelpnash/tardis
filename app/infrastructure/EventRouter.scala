@@ -4,6 +4,7 @@ import com.jglobal.tardis._
 import domain._
 import akka.actor._
 import scala.concurrent.duration._
+import akka.agent.Agent
 
 case object Retry
 
@@ -18,6 +19,8 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   unacknowledgedRepo: UnacknowledgedRepository,
   eventRepo: EventRepository) extends Actor with ActorLogging {
 
+  var eventCounter = 0
+
   val statsActor = context.system.actorSelection("/user/ChatterSupervisor/doctor")
   
   override def preStart() {
@@ -30,6 +33,8 @@ class EventRouterActor(subscriptionService: SubscriptionService,
       statsActor ! clientRepo.stats(subscription.clientId)
     }
     case event: EventContainer => {
+      eventCounter += 1
+      println(s"Event ${eventCounter} received")
       clientRepo.recordPublished(event.clientId, event.eventType)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {
         unacknowledgedRepo.store(ClientIdAndEventId(client.id, event.id), EventContainerAndTimeStamp(event, System.currentTimeMillis))
@@ -37,8 +42,9 @@ class EventRouterActor(subscriptionService: SubscriptionService,
         clientRepo.recordEventSent(client.id)
         statsActor ! clientRepo.stats(client.id)
       })
-      statsActor ! clientRepo.stats(event.clientId)
       sender ! Ack(event.id, event.clientId)
+      println(s"Ack for event ${eventCounter} was sent")
+      statsActor ! clientRepo.stats(event.clientId)
     }
     case stats: ClientStats => {
       println(s"EventRouter Saw request for stats for client ${stats.clientId}")
@@ -57,6 +63,16 @@ class EventRouterActor(subscriptionService: SubscriptionService,
       unacknowledgedRepo.dueForRetry.foreach(due => due._1.sendEvent(due._2))
       context.system.scheduler.scheduleOnce(30 seconds, self, Retry)(context.dispatcher)
     }
+  }
+
+  override def preStart() {
+    println("Event Router actor starting")
+    super.preStart()
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) {
+    println(s"Pre-restart: $reason $message")
+    super.preRestart(reason, message)
   }
 }
 

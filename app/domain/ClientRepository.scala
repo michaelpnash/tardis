@@ -30,6 +30,7 @@ trait ClientRepository {
 }
 
 class TransientClientRepository extends ClientRepository {
+  import akka.agent.Agent
   protected val clients = new collection.mutable.HashMap[String, Client] with SynchronizedMap[String, Client]
   protected val clientStats = new collection.mutable.HashMap[String, ClientStats] with SynchronizedMap[String, ClientStats]
 

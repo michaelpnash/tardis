@@ -74,17 +74,27 @@ case object Ping
 case class SendEvent(container: EventContainer, confirm: (Ack) => Unit)
 case class SendAck(ack: Ack)
 case class HandlerRegistered(handler: (EventContainer) => Unit, subscription: Subscription)
+case class RetrySend(eventId: UUID)
 
 class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
-  val pending = new collection.mutable.HashMap[UUID, (Ack) => Unit] with SynchronizedMap[UUID, (Ack) => Unit]
+  val sentEventsPendingAck = new collection.mutable.HashMap[UUID, SendEvent] with SynchronizedMap[UUID, SendEvent]
   val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
   
   implicit val timeout = Timeout(30 seconds)
   
   def receive = {
-    case SendEvent(container, confirm) => {
-      pending.put(container.id, confirm)
-      bus ! container
+    case send: SendEvent => {
+      sentEventsPendingAck.put(send.container.id, send)
+      bus ! send.container
+      context.system.scheduler.scheduleOnce(30 seconds, self, RetrySend(send.container.id))(context.dispatcher)
+    }
+
+    case RetrySend(id: UUID) => sentEventsPendingAck.get(id) match {
+      case Some(send) => {
+        println(s"Retrying send of event $send, no ack received yet")
+        self ! send
+      }
+      case None => {}
     }
 
     case Stats(clientId) => {
@@ -117,10 +127,10 @@ class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
     }
       
     case ack: Ack => {
-      pending.get(ack.id) match {
+      sentEventsPendingAck.get(ack.id) match {
         case Some(f) => {
-          f(ack)
-          pending.remove(ack.id)
+          f.confirm(ack)
+          sentEventsPendingAck.remove(ack.id)
         }
         case None => {
           log.error(s"Received an ack for id ${ack.id} which we do not have a pending handler for")

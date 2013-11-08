@@ -46,6 +46,7 @@ object ApplicationBuild extends Build {
       "org.webjars" % "bootstrap" % "2.3.2",
       // ---- application dependencies ----
       "com.typesafe.akka"  %% "akka-remote" % akkaVersion,
+      "com.typesafe.akka" %% "akka-agent" % akkaVersion,
       
       // ---- test dependencies ----
       "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",

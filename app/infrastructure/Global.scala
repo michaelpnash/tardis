@@ -30,8 +30,8 @@ object TardisModule {
   lazy val clientDir = ClientDirectory(config.getString("tardis.data.dir"))
   lazy val clientRepository = wire[PersistentClientRepository]
   lazy val subscriptionService: SubscriptionService = wire[SubscriptionService]
-  lazy val eventRepo = wire[EventRepository]
-  lazy val unackRepository = wire[UnacknowledgedRepository]
+  lazy val eventRepo = wire[PersistentEventRepository]
+  lazy val unackRepository = wire[PersistentUnacknowledgedRepository]
   lazy val pair = Concurrent.broadcast[JsValue]
   lazy val chatOut = pair._1
   lazy val chatChannel = pair._2
