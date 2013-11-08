@@ -22,10 +22,6 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   var eventCounter = 0
 
   val statsActor = context.system.actorSelection("/user/ChatterSupervisor/doctor")
-  
-  override def preStart() {
-    self ! Retry
-  }
 
   def receive = {
     case subscription: Subscription => {
@@ -68,6 +64,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
   override def preStart() {
     println("Event Router actor starting")
     super.preStart()
+    self ! Retry
   }
 
   override def preRestart(reason: Throwable, message: Option[Any]) {

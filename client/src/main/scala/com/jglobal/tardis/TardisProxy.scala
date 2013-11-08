@@ -79,6 +79,8 @@ case class RetrySend(eventId: UUID)
 class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
   val sentEventsPendingAck = new collection.mutable.HashMap[UUID, SendEvent] with SynchronizedMap[UUID, SendEvent]
   val handlers = new collection.mutable.HashMap[String, (EventContainer) => Unit] with SynchronizedMap[String, (EventContainer) => Unit]
+
+  var unmatchedAcks = 0
   
   implicit val timeout = Timeout(30 seconds)
   
@@ -133,7 +135,9 @@ class TardisProxyActor(bus: ActorSelection) extends Actor with ActorLogging {
           sentEventsPendingAck.remove(ack.id)
         }
         case None => {
-          log.error(s"Received an ack for id ${ack.id} which we do not have a pending handler for")
+          unmatchedAcks += 1
+          log.error(s"Received an ack for id ${ack.id} which we do not have a pending handler for (got $unmatchedAcks of these)")
+
         }
       }
     }

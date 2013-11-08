@@ -25,11 +25,12 @@ object Main extends App {
   System.exit(0)
 
   def test1() {
+    val count = 100
     val eventType = "out1"
     val payload = """{token:"value"}"""
-    (1 to 5000).foreach { i => proxy.publish(EventContainer(UUID.randomUUID, eventType, payload, proxy.clientId), ack) }
-    wait({ acks().size < 5000 })
-    require(acks().size == 5000)
+    (1 to count).foreach { i => proxy.publish(EventContainer(UUID.randomUUID, eventType, payload, proxy.clientId), ack) }
+    wait({ acks().size == count }, 10000)
+    require(acks().size == count, "Didn't get expected number of acks, got ${acks().size} but expected ${count}")
   }
 
   def ack(ack: Ack) {
@@ -38,8 +39,13 @@ object Main extends App {
     acks.sendOff(_ :+ ack)
   }
 
-  def wait(proc: => Boolean) {
-    while(!proc) Thread.sleep(5)
+  def wait(proc: => Boolean, maxTime: Long) {
+    var elapsed = 0
+    while(!proc) {
+      Thread.sleep(5)
+      elapsed += 5
+      if (elapsed > maxTime) throw new RuntimeException("Waited too long, aborting")
+    }
   }
   def subscribe(eventType: String) = {
     proxy.registerHandler({
