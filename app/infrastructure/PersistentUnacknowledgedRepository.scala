@@ -2,7 +2,6 @@ package infrastructure
 
 import domain._
 import akka.actor._
-import infrastructure.api._
 import com.jglobal.tardis.EventContainer
 
 import java.io.File

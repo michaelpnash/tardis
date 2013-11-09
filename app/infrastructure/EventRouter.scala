@@ -30,6 +30,7 @@ class EventRouterActor(subscriptionService: SubscriptionService,
     }
     case event: EventContainer => {
       eventCounter += 1
+      eventRepo.store(event)
       println(s"Event ${eventCounter} received")
       clientRepo.recordPublished(event.clientId, event.eventType)
       clientRepo.subscribersOf(EventType(event.eventType)).foreach(client => {

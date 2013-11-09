@@ -4,7 +4,6 @@ import domain._
 import org.scalatest.{FreeSpec, BeforeAndAfter}
 import com.jglobal.tardis._
 import java.util.UUID
-import infrastructure.api._
 import java.io.File
 
 trait PersistentRepositoryTest {
@@ -49,7 +48,7 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
     //   assert(repo.dueForRetry.size === 0)
     // }
     "can store unacknowledged data from one instantiation to another" in {
-      val eventRepo = new PersistentEventRepository(path)
+      val eventRepo = new PersistentEventRepository(EventDirectory(path))
       val clientRepo = new PersistentClientRepository(ClientDirectory(path))
       val repo = new PersistentUnacknowledgedRepository(path, clientRepo, eventRepo)
       val event = EventContainer(UUID.randomUUID, "type", "payload", "clientId")
@@ -58,7 +57,7 @@ class PersistentUnacknowledgedRepositoryTest extends FreeSpec with PersistentRep
       val containerAndTimeStamp = EventContainerAndTimeStamp(event, System.currentTimeMillis - 40000)
       repo.store(clientAndEventId, containerAndTimeStamp)
       
-      val eventRepo2 = new PersistentEventRepository(path)
+      val eventRepo2 = new PersistentEventRepository(EventDirectory(path))
       val clientRepo2 = new PersistentClientRepository(ClientDirectory(path))
       val repo2 = new PersistentUnacknowledgedRepository(path, clientRepo2, eventRepo2)
 
