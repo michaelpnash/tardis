@@ -15,11 +15,14 @@ class PersistentEventRepository(eventDir: EventDirectory) extends EventRepositor
     container
   }
   override def find(id: UUID): Option[EventContainer] = {
-    val eventFilePath = s"${eventDir.dir.getPath}/events/${id.toString}"
+    val eventFilePath = s"${eventDir.dir.getPath}/${id.toString}"
     val eventFile = new File(eventFilePath)
     if (eventFile.exists())
       Some(SerializableEventContainer.fromStr(fromFile(eventFile).getLines.mkString("\n")))
-    else None
+    else {
+      println(s"File ${eventFile.getPath} does not exist")
+      None
+    }
   }
 }
 
