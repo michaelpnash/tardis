@@ -31,6 +31,7 @@ object TardisModule {
   
   lazy val clientDir = ClientDirectory(baseDir)
   lazy val eventDir = EventDirectory(baseDir)
+  lazy val unacknowledgedDir = UnacknowledgedDirectory(baseDir)
 
   lazy val clientRepository = wire[PersistentClientRepository]
   lazy val subscriptionService: SubscriptionService = wire[SubscriptionService]
@@ -64,3 +65,5 @@ abstract class DataDirectory(str: String, suffix: String) {
 case class ClientDirectory(str: String) extends DataDirectory(str, "/clients/")
 
 case class EventDirectory(str: String) extends DataDirectory(str, "/events")
+
+case class UnacknowledgedDirectory(str: String) extends DataDirectory(str, "/unacknowledged")
